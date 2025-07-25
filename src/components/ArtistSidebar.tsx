@@ -1,4 +1,4 @@
-import { Music, Upload, BarChart3, DollarSign, User, Home, Settings } from "lucide-react"
+import { Music, Upload, BarChart3, DollarSign, User, Home, Settings, Globe, Shield, Megaphone, Users, FileText, Zap } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 
 import {
@@ -16,9 +16,18 @@ const artistMenuItems = [
   { title: "Dashboard", url: "/artist", icon: Home },
   { title: "Moje Utwory", url: "/artist/tracks", icon: Music },
   { title: "Dodaj Utwór", url: "/artist/upload", icon: Upload },
+  { title: "Dystrybucja", url: "/artist/distribution", icon: Globe },
   { title: "Statystyki", url: "/artist/analytics", icon: BarChart3 },
   { title: "Wypłaty", url: "/artist/payments", icon: DollarSign },
+  { title: "Prawa Autorskie", url: "/artist/rights", icon: Shield },
+  { title: "Promocja", url: "/artist/promotion", icon: Megaphone },
+  { title: "Współpraca", url: "/artist/collaboration", icon: Users },
   { title: "Profil", url: "/artist/profile", icon: User },
+]
+
+const artistAdvancedItems = [
+  { title: "Content ID", url: "/artist/content-id", icon: FileText },
+  { title: "AI Tools", url: "/artist/ai-tools", icon: Zap },
 ]
 
 export function ArtistSidebar() {
@@ -45,6 +54,31 @@ export function ArtistSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {artistMenuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to={item.url} 
+                      className={({ isActive }) =>
+                        isActive 
+                          ? "bg-primary/10 text-primary font-medium" 
+                          : "hover:bg-muted/50"
+                      }
+                    >
+                      <item.icon className="w-4 h-4 mr-2" />
+                      <span>{item.title}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Zaawansowane</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {artistAdvancedItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink 
