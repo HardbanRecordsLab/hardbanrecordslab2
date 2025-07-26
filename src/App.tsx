@@ -13,6 +13,13 @@ import ArtistPromotion from "./pages/ArtistPromotion";
 import ArtistCollaboration from "./pages/ArtistCollaboration";
 import ArtistAITools from "./pages/ArtistAITools";
 import AuthorDashboard from "./pages/AuthorDashboard";
+import AuthorDistribution from "./pages/AuthorDistribution";
+import AuthorCopyright from "./pages/AuthorCopyright";
+import AuthorRights from "./pages/AuthorRights";
+import AuthorPromotion from "./pages/AuthorPromotion";
+import AuthorAnalytics from "./pages/AuthorAnalytics";
+import AuthorCollaboration from "./pages/AuthorCollaboration";
+import AuthorAITools from "./pages/AuthorAITools";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +41,13 @@ const App = () => (
             <Route path="/artist/collaboration" element={<ArtistCollaboration />} />
             <Route path="/artist/ai-tools" element={<ArtistAITools />} />
             <Route path="/author" element={<AuthorDashboard />} />
+            <Route path="/author/distribution" element={<AuthorDistribution />} />
+            <Route path="/author/copyright" element={<AuthorCopyright />} />
+            <Route path="/author/rights" element={<AuthorRights />} />
+            <Route path="/author/promotion" element={<AuthorPromotion />} />
+            <Route path="/author/analytics" element={<AuthorAnalytics />} />
+            <Route path="/author/collaboration" element={<AuthorCollaboration />} />
+            <Route path="/author/ai-tools" element={<AuthorAITools />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
