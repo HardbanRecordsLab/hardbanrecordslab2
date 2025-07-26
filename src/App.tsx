@@ -6,6 +6,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "./components/AppLayout";
 import LandingPage from "./pages/LandingPage";
 import ArtistDashboard from "./pages/ArtistDashboard";
+import ArtistDistribution from "./pages/ArtistDistribution";
+import ArtistContentId from "./pages/ArtistContentId";
+import ArtistRights from "./pages/ArtistRights";
+import ArtistPromotion from "./pages/ArtistPromotion";
+import ArtistCollaboration from "./pages/ArtistCollaboration";
+import ArtistAITools from "./pages/ArtistAITools";
 import AuthorDashboard from "./pages/AuthorDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -21,6 +27,12 @@ const App = () => (
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/artist" element={<ArtistDashboard />} />
+            <Route path="/artist/distribution" element={<ArtistDistribution />} />
+            <Route path="/artist/content-id" element={<ArtistContentId />} />
+            <Route path="/artist/rights" element={<ArtistRights />} />
+            <Route path="/artist/promotion" element={<ArtistPromotion />} />
+            <Route path="/artist/collaboration" element={<ArtistCollaboration />} />
+            <Route path="/artist/ai-tools" element={<ArtistAITools />} />
             <Route path="/author" element={<AuthorDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
