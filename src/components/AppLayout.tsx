@@ -26,6 +26,8 @@ export function AppLayout({ children }: AppLayoutProps) {
         {/* Sidebar - różny dla artysty i autora */}
         {isArtistPanel && <ArtistSidebar />}
         {isAuthorPanel && <AuthorSidebar />}
+        {isInstructorPanel && <InstructorSidebar />}
+        {isStudentPanel && <StudentSidebar />}
 
         <div className="flex-1 flex flex-col">
           {/* Header */}
