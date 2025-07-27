@@ -1,4 +1,4 @@
-import { BookOpen, Upload, BarChart3, DollarSign, User, Home, Settings, PenTool } from "lucide-react"
+import { BookOpen, Upload, BarChart3, DollarSign, User, Home, Settings, PenTool, Shield, Scale, Megaphone, Users, Bot } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 
 import {
@@ -14,11 +14,13 @@ import {
 
 const authorMenuItems = [
   { title: "Dashboard", url: "/author", icon: Home },
-  { title: "Moje Publikacje", url: "/author/publications", icon: BookOpen },
-  { title: "Dodaj Publikację", url: "/author/upload", icon: Upload },
-  { title: "Statystyki", url: "/author/analytics", icon: BarChart3 },
-  { title: "Wypłaty", url: "/author/payments", icon: DollarSign },
-  { title: "Profil", url: "/author/profile", icon: User },
+  { title: "Dystrybucja", url: "/author/distribution", icon: BookOpen },
+  { title: "Prawa Autorskie", url: "/author/copyright", icon: Shield },
+  { title: "Zarządzanie Prawami", url: "/author/rights", icon: Scale },
+  { title: "Promocja", url: "/author/promotion", icon: Megaphone },
+  { title: "Analityka", url: "/author/analytics", icon: BarChart3 },
+  { title: "Współpraca", url: "/author/collaboration", icon: Users },
+  { title: "Narzędzia AI", url: "/author/ai-tools", icon: Bot },
 ]
 
 export function AuthorSidebar() {
