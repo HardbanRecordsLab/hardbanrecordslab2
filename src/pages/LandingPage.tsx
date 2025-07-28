@@ -17,10 +17,10 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-4">
             <Button variant="ghost" asChild>
-              <Link to="/login">Zaloguj się</Link>
+              <Link to="/auth">Zaloguj się</Link>
             </Button>
             <Button asChild>
-              <Link to="/register">Dołącz teraz</Link>
+              <Link to="/auth">Dołącz teraz</Link>
             </Button>
           </div>
         </div>
@@ -173,9 +173,11 @@ export default function LandingPage() {
             Dołącz do tysięcy twórców, którzy już zarabiają na swojej pasji
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="gap-2">
-              Rozpocznij za darmo
-              <ArrowRight className="w-4 h-4" />
+            <Button size="lg" className="gap-2" asChild>
+              <Link to="/auth">
+                Rozpocznij za darmo
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </Button>
             <Button size="lg" variant="outline">
               Zobacz demo
