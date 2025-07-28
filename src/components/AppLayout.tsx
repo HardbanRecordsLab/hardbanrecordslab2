@@ -27,7 +27,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        {/* Sidebar - różny dla artysty i autora */}
+        {/* Sidebar - różny dla każdego typu panelu */}
         {isArtistPanel && <ArtistSidebar />}
         {isAuthorPanel && <AuthorSidebar />}
         {isInstructorPanel && <InstructorSidebar />}
