@@ -1,6 +1,8 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { ArtistSidebar } from "@/components/ArtistSidebar"
 import { AuthorSidebar } from "@/components/AuthorSidebar"
+import { InstructorSidebar } from "@/components/InstructorSidebar"
+import { StudentSidebar } from "@/components/StudentSidebar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Bell, User } from "lucide-react"
@@ -14,9 +16,11 @@ export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation()
   const isArtistPanel = location.pathname.startsWith('/artist')
   const isAuthorPanel = location.pathname.startsWith('/author')
+  const isInstructorPanel = location.pathname.startsWith('/instructor')
+  const isStudentPanel = location.pathname.startsWith('/student')
   
-  // Jeśli nie jesteśmy w panelu artysty ani autora, nie pokazuj sidebara
-  if (!isArtistPanel && !isAuthorPanel) {
+  // Jeśli nie jesteśmy w żadnym panelu, nie pokazuj sidebara
+  if (!isArtistPanel && !isAuthorPanel && !isInstructorPanel && !isStudentPanel) {
     return <>{children}</>
   }
 
@@ -36,7 +40,10 @@ export function AppLayout({ children }: AppLayoutProps) {
               <SidebarTrigger />
               <div className="hidden md:block">
                 <h2 className="text-lg font-semibold">
-                  {isArtistPanel ? "Panel Artysty" : "Panel Autora"}
+                  {isArtistPanel && "Panel Artysty"}
+                  {isAuthorPanel && "Panel Autora"}
+                  {isInstructorPanel && "Panel Instruktora"}
+                  {isStudentPanel && "Panel Ucznia"}
                 </h2>
               </div>
             </div>
