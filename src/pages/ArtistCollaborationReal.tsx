@@ -110,14 +110,26 @@ export default function ArtistCollaborationReal() {
 
   const loadCollaborations = async () => {
     try {
-      // Load collaborations for current user's projects
+      if (projects.length === 0) return
+      
+      // For now, since there's no foreign key relationship, load collaborations without profiles
       const { data, error } = await supabase
         .from('collaborations')
         .select('*')
         .in('project_id', projects.map(p => p.id))
 
       if (error) throw error
-      setCollaborations(data || [])
+      
+      // Map the data to include empty profiles for now
+      const collaborationsWithProfiles = (data || []).map(collab => ({
+        ...collab,
+        profiles: {
+          full_name: 'Użytkownik',
+          avatar_url: undefined
+        }
+      }))
+      
+      setCollaborations(collaborationsWithProfiles)
     } catch (error: any) {
       console.error('Error loading collaborations:', error)
     }
