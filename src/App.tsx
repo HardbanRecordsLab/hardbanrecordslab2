@@ -13,7 +13,7 @@ import ArtistDistribution from "./pages/ArtistDistribution";
 import ArtistContentId from "./pages/ArtistContentId";
 import ArtistRights from "./pages/ArtistRights";
 import ArtistPromotion from "./pages/ArtistPromotion";
-import ArtistCollaboration from "./pages/ArtistCollaboration";
+import ArtistCollaborationReal from "./pages/ArtistCollaborationReal";
 import ArtistAITools from "./pages/ArtistAITools";
 import AuthorDashboard from "./pages/AuthorDashboard";
 import AuthorDistribution from "./pages/AuthorDistribution";
@@ -71,7 +71,7 @@ const App = () => (
             } />
             <Route path="/artist/collaboration" element={
               <ProtectedRoute allowedRoles={['artist']}>
-                <AppLayout><ArtistCollaboration /></AppLayout>
+                <AppLayout><ArtistCollaborationReal /></AppLayout>
               </ProtectedRoute>
             } />
             <Route path="/artist/ai-tools" element={

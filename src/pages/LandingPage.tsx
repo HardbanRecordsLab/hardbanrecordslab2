@@ -38,13 +38,13 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="gap-2" asChild>
-              <Link to="/artist">
+              <Link to="/auth">
                 <Music className="w-4 h-4" />
                 Panel Artysty
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="gap-2" asChild>
-              <Link to="/author">
+              <Link to="/auth">
                 <BookOpen className="w-4 h-4" />
                 Panel Autora
               </Link>
