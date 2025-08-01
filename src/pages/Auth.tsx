@@ -21,7 +21,7 @@ export default function Auth() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [fullName, setFullName] = useState('')
-  const [role, setRole] = useState<'artist' | 'author' | 'instructor' | 'student'>('artist')
+  const [role, setRole] = useState<'artist' | 'author' | 'instructor' | 'student' | 'admin'>('artist')
 
   // If user is already logged in, redirect to appropriate dashboard
   useEffect(() => {
@@ -115,6 +115,8 @@ export default function Auth() {
         return { icon: GraduationCap, label: 'Instruktor', description: 'Twórz kursy online' }
       case 'student':
         return { icon: User, label: 'Student', description: 'Ucz się i rozwijaj' }
+      case 'admin':
+        return { icon: User, label: 'Administrator', description: 'Zarządzaj platformą' }
       default:
         return { icon: User, label: 'Użytkownik', description: '' }
     }
@@ -213,7 +215,7 @@ export default function Auth() {
                         <SelectValue placeholder="Wybierz swoją rolę" />
                       </SelectTrigger>
                       <SelectContent>
-                        {(['artist', 'author', 'instructor', 'student'] as const).map((roleOption) => {
+                        {(['artist', 'author', 'instructor', 'student', 'admin'] as const).map((roleOption) => {
                           const roleInfo = getRoleInfo(roleOption)
                           const Icon = roleInfo.icon
                           return (

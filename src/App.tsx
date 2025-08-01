@@ -30,6 +30,7 @@ import QuizSystem from "./pages/eLearning/QuizSystem";
 import AIGenerator from "./pages/eLearning/AIGenerator";
 import CertificateSystem from "./pages/eLearning/CertificateSystem";
 import StudentDashboard from "./pages/eLearning/StudentDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -152,6 +153,11 @@ const App = () => (
             <Route path="/student" element={
               <ProtectedRoute allowedRoles={['student']}>
                 <AppLayout><StudentDashboard /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AppLayout><AdminDashboard /></AppLayout>
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

@@ -1,9 +1,37 @@
+import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Music, BookOpen, GraduationCap, ArrowRight, CheckCircle, Star } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function LandingPage() {
+  const { user, profile } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (user && profile) {
+      switch (profile.role) {
+        case 'artist':
+          navigate('/artist')
+          break
+        case 'author':
+          navigate('/author')
+          break
+        case 'instructor':
+          navigate('/instructor')
+          break
+        case 'student':
+          navigate('/student')
+          break
+        case 'admin':
+          navigate('/admin')
+          break
+        default:
+          break
+      }
+    }
+  }, [user, profile, navigate])
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
       {/* Header */}

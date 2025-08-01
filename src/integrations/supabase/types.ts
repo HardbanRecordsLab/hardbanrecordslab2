@@ -318,14 +318,7 @@ export type Database = {
       }
     }
     Views: {
-      admin_analytics: {
-        Row: {
-          count: number | null
-          metric: string | null
-          period: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       [_ in never]: never

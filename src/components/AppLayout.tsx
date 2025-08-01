@@ -3,6 +3,7 @@ import { ArtistSidebar } from "@/components/ArtistSidebar"
 import { AuthorSidebar } from "@/components/AuthorSidebar"
 import { InstructorSidebar } from "@/components/InstructorSidebar"
 import { StudentSidebar } from "@/components/StudentSidebar"
+import { AdminSidebar } from "@/components/AdminSidebar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Bell, User } from "lucide-react"
@@ -18,9 +19,10 @@ export function AppLayout({ children }: AppLayoutProps) {
   const isAuthorPanel = location.pathname.startsWith('/author')
   const isInstructorPanel = location.pathname.startsWith('/instructor')
   const isStudentPanel = location.pathname.startsWith('/student')
+  const isAdminPanel = location.pathname.startsWith('/admin')
   
   // Jeśli nie jesteśmy w żadnym panelu, nie pokazuj sidebara
-  if (!isArtistPanel && !isAuthorPanel && !isInstructorPanel && !isStudentPanel) {
+  if (!isArtistPanel && !isAuthorPanel && !isInstructorPanel && !isStudentPanel && !isAdminPanel) {
     return <>{children}</>
   }
 
@@ -32,6 +34,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         {isAuthorPanel && <AuthorSidebar />}
         {isInstructorPanel && <InstructorSidebar />}
         {isStudentPanel && <StudentSidebar />}
+        {isAdminPanel && <AdminSidebar />}
 
         <div className="flex-1 flex flex-col">
           {/* Header */}
@@ -44,6 +47,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                   {isAuthorPanel && "Panel Autora"}
                   {isInstructorPanel && "Panel Instruktora"}
                   {isStudentPanel && "Panel Ucznia"}
+                  {isAdminPanel && "Panel Administratora"}
                 </h2>
               </div>
             </div>
