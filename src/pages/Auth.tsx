@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, Music, BookOpen, GraduationCap, User } from 'lucide-react'
+import { Loader2, Music, BookOpen, GraduationCap, User, Shield } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function Auth() {
@@ -116,7 +116,7 @@ export default function Auth() {
       case 'student':
         return { icon: User, label: 'Student', description: 'Ucz się i rozwijaj' }
       case 'admin':
-        return { icon: User, label: 'Administrator', description: 'Zarządzaj platformą' }
+        return { icon: Shield, label: 'Administrator', description: 'Zarządzaj platformą' }
       default:
         return { icon: User, label: 'Użytkownik', description: '' }
     }

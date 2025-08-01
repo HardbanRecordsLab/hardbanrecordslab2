@@ -1,148 +1,98 @@
-import { useState } from 'react'
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar"
 import { 
   Users, 
-  FileText, 
-  GraduationCap, 
-  BarChart3, 
   Settings, 
+  BarChart3, 
+  Music, 
+  BookOpen, 
+  GraduationCap,
   Shield,
-  ChevronLeft,
-  ChevronRight,
-  Home,
-  Database,
-  UserCheck,
-  Lock
+  Database
 } from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
 
+const adminMenuItems = [
+  {
+    title: "Dashboard",
+    url: "/admin",
+    icon: BarChart3,
+  },
+  {
+    title: "Zarządzanie Użytkownikami",
+    url: "/admin/users",
+    icon: Users,
+  },
+  {
+    title: "Projekty Muzyczne",
+    url: "/admin/music-projects",
+    icon: Music,
+  },
+  {
+    title: "Publikacje Cyfrowe",
+    url: "/admin/digital-publications",
+    icon: BookOpen,
+  },
+  {
+    title: "Kursy eLearning",
+    url: "/admin/courses",
+    icon: GraduationCap,
+  },
+  {
+    title: "Analityka",
+    url: "/admin/analytics",
+    icon: BarChart3,
+  },
+  {
+    title: "Ustawienia Systemu",
+    url: "/admin/settings",
+    icon: Settings,
+  },
+  {
+    title: "Baza Danych",
+    url: "/admin/database",
+    icon: Database,
+  },
+]
+
 export function AdminSidebar() {
-  const [collapsed, setCollapsed] = useState(false)
   const location = useLocation()
 
-  const menuItems = [
-    { 
-      icon: Home, 
-      label: "Dashboard", 
-      href: "/admin",
-      badge: null
-    },
-    { 
-      icon: Users, 
-      label: "Zarządzanie Użytkownikami", 
-      href: "/admin/users",
-      badge: null
-    },
-    { 
-      icon: FileText, 
-      label: "Zarządzanie Projektami", 
-      href: "/admin/projects",
-      badge: null
-    },
-    { 
-      icon: GraduationCap, 
-      label: "Zarządzanie Kursami", 
-      href: "/admin/courses",
-      badge: null
-    },
-    { 
-      icon: Database, 
-      label: "Zarządzanie Treścią", 
-      href: "/admin/content",
-      badge: null
-    },
-    { 
-      icon: BarChart3, 
-      label: "Analityka", 
-      href: "/admin/analytics",
-      badge: null
-    },
-    { 
-      icon: UserCheck, 
-      label: "Weryfikacja", 
-      href: "/admin/verification",
-      badge: "3" // przykładowa liczba oczekujących
-    },
-    { 
-      icon: Lock, 
-      label: "Bezpieczeństwo", 
-      href: "/admin/security",
-      badge: null
-    },
-    { 
-      icon: Settings, 
-      label: "Ustawienia Systemu", 
-      href: "/admin/settings",
-      badge: null
-    }
-  ]
-
   return (
-    <div className={cn(
-      "flex flex-col h-screen bg-card border-r transition-all duration-300",
-      collapsed ? "w-16" : "w-64"
-    )}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
-        {!collapsed && (
-          <div className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-primary" />
-            <span className="font-semibold text-sm">Panel Admina</span>
-          </div>
-        )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setCollapsed(!collapsed)}
-          className="h-8 w-8 p-0"
-        >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </Button>
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
-        {menuItems.map((item) => {
-          const Icon = item.icon
-          const isActive = location.pathname === item.href
-          
-          return (
-            <Link key={item.href} to={item.href}>
-              <Button
-                variant={isActive ? "default" : "ghost"}
-                className={cn(
-                  "w-full justify-start gap-3 h-10",
-                  collapsed && "justify-center px-2"
-                )}
-              >
-                <Icon className="h-4 w-4 flex-shrink-0" />
-                {!collapsed && (
-                  <>
-                    <span className="truncate">{item.label}</span>
-                    {item.badge && (
-                      <Badge variant="secondary" className="ml-auto">
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </>
-                )}
-              </Button>
-            </Link>
-          )
-        })}
-      </nav>
-
-      {/* Admin Info */}
-      {!collapsed && (
-        <div className="p-4 border-t">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Shield className="h-3 w-3" />
-            <span>HardbanRecords Lab Admin</span>
-          </div>
-        </div>
-      )}
-    </div>
+    <Sidebar>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel className="flex items-center gap-2">
+            <Shield className="w-4 h-4" />
+            Panel Administracyjny
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {adminMenuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton 
+                    asChild
+                    isActive={location.pathname === item.url}
+                  >
+                    <Link to={item.url}>
+                      <item.icon className="w-4 h-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
   )
 }

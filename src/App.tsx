@@ -15,6 +15,8 @@ import ArtistRights from "./pages/ArtistRights";
 import ArtistPromotion from "./pages/ArtistPromotion";
 import ArtistCollaborationReal from "./pages/ArtistCollaborationReal";
 import ArtistAITools from "./pages/ArtistAITools";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminUsers from "./pages/AdminUsers";
 import AuthorDashboard from "./pages/AuthorDashboard";
 import AuthorDistribution from "./pages/AuthorDistribution";
 import AuthorCopyright from "./pages/AuthorCopyright";
@@ -30,7 +32,6 @@ import QuizSystem from "./pages/eLearning/QuizSystem";
 import AIGenerator from "./pages/eLearning/AIGenerator";
 import CertificateSystem from "./pages/eLearning/CertificateSystem";
 import StudentDashboard from "./pages/eLearning/StudentDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -158,6 +159,11 @@ const App = () => (
             <Route path="/admin" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AppLayout><AdminDashboard /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AppLayout><AdminUsers /></AppLayout>
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
