@@ -17,6 +17,12 @@ import ArtistCollaborationReal from "./pages/ArtistCollaborationReal";
 import ArtistAITools from "./pages/ArtistAITools";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUsers from "./pages/AdminUsers";
+import AdminMusicProjects from "./pages/AdminMusicProjects";
+import AdminDigitalPublications from "./pages/AdminDigitalPublications";
+import AdminCourses from "./pages/AdminCourses";
+import AdminAnalytics from "./pages/AdminAnalytics";
+import AdminSettings from "./pages/AdminSettings";
+import AdminDatabase from "./pages/AdminDatabase";
 import AuthorDashboard from "./pages/AuthorDashboard";
 import AuthorDistribution from "./pages/AuthorDistribution";
 import AuthorCopyright from "./pages/AuthorCopyright";
@@ -164,6 +170,36 @@ const App = () => (
             <Route path="/admin/users" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AppLayout><AdminUsers /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/music-projects" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AppLayout><AdminMusicProjects /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/digital-publications" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AppLayout><AdminDigitalPublications /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/courses" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AppLayout><AdminCourses /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/analytics" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AppLayout><AdminAnalytics /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/settings" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AppLayout><AdminSettings /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/database" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AppLayout><AdminDatabase /></AppLayout>
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
