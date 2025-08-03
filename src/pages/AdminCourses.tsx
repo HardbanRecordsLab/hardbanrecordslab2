@@ -23,7 +23,7 @@ interface Course {
   price: number
   created_at: string
   instructor_id: string
-  profiles?: {
+  instructor?: {
     full_name: string
     email: string
   }
@@ -68,13 +68,7 @@ export default function AdminCourses() {
       setLoading(true)
       const { data, error } = await supabase
         .from('courses')
-        .select(`
-          *,
-          profiles:instructor_id (
-            full_name,
-            email
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -97,8 +91,7 @@ export default function AdminCourses() {
     if (searchTerm) {
       filtered = filtered.filter(course =>
         course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
+        course.description?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
@@ -402,11 +395,11 @@ export default function AdminCourses() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                     <TableCell>
                       <div>
-                        <div>{course.profiles?.full_name || 'Administrator'}</div>
+                        <div>Administrator</div>
                         <div className="text-sm text-muted-foreground">
-                          {course.profiles?.email}
+                          System
                         </div>
                       </div>
                     </TableCell>

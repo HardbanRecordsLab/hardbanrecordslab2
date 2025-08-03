@@ -21,7 +21,7 @@ interface MusicProject {
   created_at: string
   user_id: string
   description?: string
-  profiles?: {
+  profile?: {
     full_name: string
     email: string
   }
@@ -51,13 +51,7 @@ export default function AdminMusicProjects() {
       setLoading(true)
       const { data, error } = await supabase
         .from('projects')
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            email
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -80,8 +74,7 @@ export default function AdminMusicProjects() {
     if (searchTerm) {
       filtered = filtered.filter(project =>
         project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
+        project.type?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
@@ -296,11 +289,11 @@ export default function AdminMusicProjects() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                     <TableCell>
                       <div>
-                        <div>{project.profiles?.full_name || 'Nieznany'}</div>
+                        <div>Użytkownik</div>
                         <div className="text-sm text-muted-foreground">
-                          {project.profiles?.email}
+                          ID: {project.user_id.substring(0, 8)}...
                         </div>
                       </div>
                     </TableCell>
