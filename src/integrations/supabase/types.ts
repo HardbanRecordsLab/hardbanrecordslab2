@@ -325,6 +325,22 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_artist: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_author: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_instructor: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_student: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "artist" | "author" | "instructor" | "student" | "admin"
