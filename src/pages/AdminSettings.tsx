@@ -1,20 +1,61 @@
+
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Separator } from "@/components/ui/separator"
-import { Settings, Save, Database, Shield, Mail, Globe } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Settings, Save, Users, Music, BookOpen, GraduationCap } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/integrations/supabase/client"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function AdminSettings() {
+  const [settings, setSettings] = useState({
+    autoApproveMusic: false,
+    autoApproveBooks: false,
+    maxFileSize: 100,
+    allowedAudioFormats: "mp3,wav,flac",
+    allowedBookFormats: "pdf,epub,docx",
+    platformCommission: 15
+  })
+  const [loading, setLoading] = useState(false)
   const { toast } = useToast()
+  const { user } = useAuth()
 
-  const handleSave = () => {
-    toast({
-      title: "Ustawienia zapisane",
-      description: "Konfiguracja systemu została zaktualizowana"
-    })
+  const handleSave = async () => {
+    setLoading(true)
+    try {
+      const { error } = await supabase
+        .from('admin_settings')
+        .upsert({
+          user_id: user?.id,
+          permissions: {
+            auto_approve_music: settings.autoApproveMusic,
+            auto_approve_books: settings.autoApproveBooks,
+            max_file_size: settings.maxFileSize,
+            allowed_audio_formats: settings.allowedAudioFormats.split(','),
+            allowed_book_formats: settings.allowedBookFormats.split(','),
+            platform_commission: settings.platformCommission
+          }
+        })
+
+      if (error) throw error
+
+      toast({
+        title: "Sukces",
+        description: "Ustawienia zostały zapisane"
+      })
+    } catch (error: any) {
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zapisać ustawień",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -26,186 +67,170 @@ export default function AdminSettings() {
             Ustawienia Systemu
           </h1>
           <p className="text-muted-foreground">
-            Konfiguracja głównych parametrów platformy
+            Zarządzanie konfiguracją platformy HardbanRecords Lab
           </p>
         </div>
-        <Button onClick={handleSave} className="gap-2">
-          <Save className="w-4 h-4" />
-          Zapisz zmiany
+        <Button onClick={handleSave} disabled={loading}>
+          <Save className="w-4 h-4 mr-2" />
+          Zapisz Ustawienia
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Globe className="w-5 h-5" />
-              Ustawienia ogólne
-            </CardTitle>
-            <CardDescription>
-              Podstawowe parametry platformy
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="site-name">Nazwa platformy</Label>
-              <Input id="site-name" defaultValue="HardbanRecords Lab" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="site-description">Opis platformy</Label>
-              <Input id="site-description" defaultValue="Platforma dla twórców muzycznych i autorów" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="admin-email">Email administratora</Label>
-              <Input id="admin-email" type="email" defaultValue="admin@hardbanrecords.com" />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Rejestracja otwarta</Label>
-                <p className="text-sm text-muted-foreground">
-                  Czy nowi użytkownicy mogą się rejestrować
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Weryfikacja email</Label>
-                <p className="text-sm text-muted-foreground">
-                  Wymaga potwierdzenia adresu email
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="general" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="general">Ogólne</TabsTrigger>
+          <TabsTrigger value="music">Muzyka</TabsTrigger>
+          <TabsTrigger value="books">Książki</TabsTrigger>
+          <TabsTrigger value="courses">Kursy</TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="w-5 h-5" />
-              Bezpieczeństwo
-            </CardTitle>
-            <CardDescription>
-              Ustawienia bezpieczeństwa i prywatności
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Dwustopniowa autoryzacja</Label>
-                <p className="text-sm text-muted-foreground">
-                  Wymaga 2FA dla administratorów
-                </p>
+        <TabsContent value="general">
+          <Card>
+            <CardHeader>
+              <CardTitle>Ustawienia Ogólne</CardTitle>
+              <CardDescription>
+                Podstawowa konfiguracja platformy
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="auto-approve-music">Automatyczna akceptacja muzyki</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Automatycznie akceptuj nowe wydania muzyczne
+                  </p>
+                </div>
+                <Switch
+                  id="auto-approve-music"
+                  checked={settings.autoApproveMusic}
+                  onCheckedChange={(checked) => 
+                    setSettings(prev => ({ ...prev, autoApproveMusic: checked }))
+                  }
+                />
               </div>
-              <Switch />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Logowanie aktywności</Label>
-                <p className="text-sm text-muted-foreground">
-                  Śledź działania użytkowników
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Automatyczne kopie zapasowe</Label>
-                <p className="text-sm text-muted-foreground">
-                  Codzienne backup bazy danych
-                </p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            <Separator />
-            <div className="space-y-2">
-              <Label htmlFor="session-timeout">Timeout sesji (minuty)</Label>
-              <Input id="session-timeout" type="number" defaultValue="120" />
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="w-5 h-5" />
-              Konfiguracja email
-            </CardTitle>
-            <CardDescription>
-              Ustawienia systemu mailowego
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="smtp-server">Serwer SMTP</Label>
-              <Input id="smtp-server" defaultValue="smtp.hardbanrecords.com" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="smtp-port">Port SMTP</Label>
-              <Input id="smtp-port" type="number" defaultValue="587" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="smtp-username">Nazwa użytkownika</Label>
-              <Input id="smtp-username" defaultValue="noreply@hardbanrecords.com" />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>SSL/TLS</Label>
-                <p className="text-sm text-muted-foreground">
-                  Szyfrowanie połączenia
-                </p>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="auto-approve-books">Automatyczna akceptacja książek</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Automatycznie akceptuj nowe publikacje cyfrowe
+                  </p>
+                </div>
+                <Switch
+                  id="auto-approve-books"
+                  checked={settings.autoApproveBooks}
+                  onCheckedChange={(checked) => 
+                    setSettings(prev => ({ ...prev, autoApproveBooks: checked }))
+                  }
+                />
               </div>
-              <Switch defaultChecked />
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Database className="w-5 h-5" />
-              Zarządzanie danymi
-            </CardTitle>
-            <CardDescription>
-              Narzędzia administracyjne bazy danych
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Optymalizacja automatyczna</Label>
+              <div className="grid gap-2">
+                <Label htmlFor="commission">Komisja platformy (%)</Label>
+                <Input
+                  id="commission"
+                  type="number"
+                  value={settings.platformCommission}
+                  onChange={(e) => 
+                    setSettings(prev => ({ ...prev, platformCommission: Number(e.target.value) }))
+                  }
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="music">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Music className="w-5 h-5" />
+                Ustawienia Muzyki
+              </CardTitle>
+              <CardDescription>
+                Konfiguracja dla projektów muzycznych
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="audio-formats">Dozwolone formaty audio</Label>
+                <Input
+                  id="audio-formats"
+                  value={settings.allowedAudioFormats}
+                  onChange={(e) => 
+                    setSettings(prev => ({ ...prev, allowedAudioFormats: e.target.value }))
+                  }
+                  placeholder="mp3,wav,flac"
+                />
                 <p className="text-sm text-muted-foreground">
-                  Automatyczne optymalizacje bazy
+                  Oddziel formaty przecinkami
                 </p>
               </div>
-              <Switch defaultChecked />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Czyszczenie logów</Label>
+
+              <div className="grid gap-2">
+                <Label htmlFor="max-file-size">Maksymalny rozmiar pliku (MB)</Label>
+                <Input
+                  id="max-file-size"
+                  type="number"
+                  value={settings.maxFileSize}
+                  onChange={(e) => 
+                    setSettings(prev => ({ ...prev, maxFileSize: Number(e.target.value) }))
+                  }
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="books">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5" />
+                Ustawienia Publikacji Cyfrowych
+              </CardTitle>
+              <CardDescription>
+                Konfiguracja dla publikacji cyfrowych
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="book-formats">Dozwolone formaty publikacji</Label>
+                <Input
+                  id="book-formats"
+                  value={settings.allowedBookFormats}
+                  onChange={(e) => 
+                    setSettings(prev => ({ ...prev, allowedBookFormats: e.target.value }))
+                  }
+                  placeholder="pdf,epub,docx"
+                />
                 <p className="text-sm text-muted-foreground">
-                  Usuń stare logi co 30 dni
+                  Oddziel formaty przecinkami
                 </p>
               </div>
-              <Switch defaultChecked />
-            </div>
-            <Separator />
-            <div className="space-y-2">
-              <Button variant="outline" className="w-full">
-                Uruchom optymalizację bazy
-              </Button>
-              <Button variant="outline" className="w-full">
-                Eksportuj dane użytkowników
-              </Button>
-              <Button variant="destructive" className="w-full">
-                Wyczyść cache systemu
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="courses">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <GraduationCap className="w-5 h-5" />
+                Ustawienia Kursów
+              </CardTitle>
+              <CardDescription>
+                Konfiguracja dla kursów eLearning
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Ustawienia kursów będą dostępne wkrótce
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
