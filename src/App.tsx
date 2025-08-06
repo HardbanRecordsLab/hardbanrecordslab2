@@ -38,6 +38,14 @@ import QuizSystem from "./pages/eLearning/QuizSystem";
 import AIGenerator from "./pages/eLearning/AIGenerator";
 import CertificateSystem from "./pages/eLearning/CertificateSystem";
 import StudentDashboard from "./pages/eLearning/StudentDashboard";
+import MusicPublishing from "./pages/MusicPublishing";
+import DigitalPublishing from "./pages/DigitalPublishing";
+import ELearningPlatform from "./pages/ELearningPlatform";
+import MarketplaceBrowse from "./pages/MarketplaceBrowse";
+import ProductDetails from "./pages/ProductDetails";
+import UserProfile from "./pages/UserProfile";
+import PaymentHistory from "./pages/PaymentHistory";
+import SubscriptionManagement from "./pages/SubscriptionManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -200,6 +208,46 @@ const App = () => (
             <Route path="/admin/database" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AppLayout><AdminDatabase /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/music-publishing" element={
+              <ProtectedRoute allowedRoles={['artist', 'admin']}>
+                <AppLayout><MusicPublishing /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/digital-publishing" element={
+              <ProtectedRoute allowedRoles={['author', 'admin']}>
+                <AppLayout><DigitalPublishing /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/e-learning" element={
+              <ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}>
+                <AppLayout><ELearningPlatform /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/marketplace" element={
+              <ProtectedRoute>
+                <AppLayout><MarketplaceBrowse /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/product/:id" element={
+              <ProtectedRoute>
+                <AppLayout><ProductDetails /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <AppLayout><UserProfile /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/payments" element={
+              <ProtectedRoute>
+                <AppLayout><PaymentHistory /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/subscription" element={
+              <ProtectedRoute>
+                <AppLayout><SubscriptionManagement /></AppLayout>
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
