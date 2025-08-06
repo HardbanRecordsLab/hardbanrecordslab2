@@ -587,7 +587,7 @@ const ELearningPlatform = () => {
                         <h4 className="font-medium text-foreground mb-3">Rekomendacje Cenowe</h4>
                         <div className="space-y-2">
                           <div className="flex justify-between">
-                            <span className="text-sm">Kurs podstawowy (< 5h):</span>
+                            <span className="text-sm">Kurs podstawowy (&lt; 5h):</span>
                             <span className="text-sm font-medium">49-89 PLN</span>
                           </div>
                           <div className="flex justify-between">
@@ -595,7 +595,7 @@ const ELearningPlatform = () => {
                             <span className="text-sm font-medium">89-149 PLN</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm">Kurs zaawansowany (>15h):</span>
+                            <span className="text-sm">Kurs zaawansowany (&gt;15h):</span>
                             <span className="text-sm font-medium">149-299 PLN</span>
                           </div>
                         </div>
