@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +28,96 @@ const MarketplaceBrowse = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("popular");
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchProducts();
+  }, [selectedCategory, sortBy]);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      
+      let query = supabase
+        .from('digital_products')
+        .select('*')
+        .eq('status', 'published');
+
+      // Filter by category
+      if (selectedCategory !== 'all') {
+        if (selectedCategory === 'music') {
+          query = query.eq('product_type', 'music');
+        } else if (selectedCategory === 'ebook') {
+          query = query.eq('product_type', 'ebook');
+        } else if (selectedCategory === 'course') {
+          // For courses, we'd need to fetch from courses table instead
+          const { data: coursesData, error: coursesError } = await supabase
+            .from('courses')
+            .select('*')
+            .eq('status', 'published');
+          
+          if (coursesError) throw coursesError;
+          
+          // Transform courses data to match products format
+          const transformedCourses = coursesData?.map(course => ({
+            ...course,
+            product_type: 'course',
+            author: 'Nieznany autor',
+            type: 'course'
+          })) || [];
+          
+          setProducts(transformedCourses);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Apply sorting
+      switch (sortBy) {
+        case 'newest':
+          query = query.order('created_at', { ascending: false });
+          break;
+        case 'price-low':
+          query = query.order('price', { ascending: true });
+          break;
+        case 'price-high':
+          query = query.order('price', { ascending: false });
+          break;
+        case 'popular':
+        default:
+          query = query.order('view_count', { ascending: false });
+          break;
+      }
+
+      const { data, error } = await query.limit(20);
+      
+      if (error) throw error;
+
+      // Transform data to match expected format
+      const transformedProducts = data?.map(product => ({
+        ...product,
+        author: 'Nieznany autor',
+        type: product.product_type,
+        rating: 4.5, // Placeholder - would need reviews table
+        reviews: Math.floor(Math.random() * 200) + 10, // Placeholder
+        duration: product.duration ? `${Math.floor(product.duration / 60)}:${(product.duration % 60).toString().padStart(2, '0')}` : 'N/A'
+      })) || [];
+
+      setProducts(transformedProducts);
+
+    } catch (error: any) {
+      console.error('Error fetching products:', error);
+      toast({
+        title: "Błąd",
+        description: "Nie udało się pobrać produktów",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const categories = [
     { id: "all", name: "Wszystkie", count: 1247 },
@@ -149,9 +241,13 @@ const MarketplaceBrowse = () => {
     },
   ];
 
-  const filteredProducts = selectedCategory === "all" 
-    ? allProducts 
-    : allProducts.filter(product => product.type === selectedCategory);
+  const filteredProducts = products.filter(product => {
+    if (searchQuery) {
+      return product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+             product.author.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+    return true;
+  });
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -287,7 +383,11 @@ const MarketplaceBrowse = () => {
                 <h2 className="text-2xl font-bold text-foreground">Polecane</h2>
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredProducts.map((product) => {
+                {loading ? (
+                  <div className="col-span-full text-center py-8 text-muted-foreground">
+                    Ładowanie produktów...
+                  </div>
+                ) : filteredProducts.slice(0, 6).map((product) => {
                   const TypeIcon = getTypeIcon(product.type);
                   return (
                     <Card key={product.id} className="group cursor-pointer hover:shadow-lg transition-all duration-300">
@@ -325,10 +425,7 @@ const MarketplaceBrowse = () => {
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="text-lg font-bold text-foreground">{product.price} PLN</span>
-                            {product.originalPrice && (
-                              <span className="text-sm text-muted-foreground line-through">{product.originalPrice} PLN</span>
-                            )}
+                            <span className="text-lg font-bold text-foreground">{product.price || 0} PLN</span>
                           </div>
                           <Button size="sm">Kup teraz</Button>
                         </div>
