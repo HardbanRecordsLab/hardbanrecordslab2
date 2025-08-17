@@ -8,11 +8,12 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Serwuj pliki statyczne z folderu 'dist'
+// 1. Serwuj pliki statyczne z folderu 'dist'
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Ta reguła rozwiązuje problem z 404 przy odświeżaniu (z poprawką)
-app.get('/*', (req, res) => {
+// 2. Dla wszystkich innych zapytań, wyślij index.html
+//    To middleware uruchomi się tylko, jeśli plik nie został znaleziony przez express.static
+app.use((req, res, next) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
