@@ -1,3 +1,4 @@
+// src/App.tsx
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "./components/AppLayout";
+
+// Importy wszystkich stron (bez zmian)
 import Auth from "./pages/Auth";
 import LandingPage from "./pages/LandingPage";
 import ArtistDashboard from "./pages/ArtistDashboard";
@@ -58,198 +61,72 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* === TRASY PUBLICZNE === */}
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<LandingPage />} />
-            <Route path="/artist" element={
-              <ProtectedRoute allowedRoles={['artist']}>
-                <AppLayout><ArtistDashboard /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/artist/distribution" element={
-              <ProtectedRoute allowedRoles={['artist']}>
-                <AppLayout><ArtistDistribution /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/artist/content-id" element={
-              <ProtectedRoute allowedRoles={['artist']}>
-                <AppLayout><ArtistContentId /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/artist/rights" element={
-              <ProtectedRoute allowedRoles={['artist']}>
-                <AppLayout><ArtistRights /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/artist/promotion" element={
-              <ProtectedRoute allowedRoles={['artist']}>
-                <AppLayout><ArtistPromotion /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/artist/collaboration" element={
-              <ProtectedRoute allowedRoles={['artist']}>
-                <AppLayout><ArtistCollaborationReal /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/artist/ai-tools" element={
-              <ProtectedRoute allowedRoles={['artist']}>
-                <AppLayout><ArtistAITools /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/author" element={
-              <ProtectedRoute allowedRoles={['author']}>
-                <AppLayout><AuthorDashboard /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/author/distribution" element={
-              <ProtectedRoute allowedRoles={['author']}>
-                <AppLayout><AuthorDistribution /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/author/copyright" element={
-              <ProtectedRoute allowedRoles={['author']}>
-                <AppLayout><AuthorCopyright /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/author/rights" element={
-              <ProtectedRoute allowedRoles={['author']}>
-                <AppLayout><AuthorRights /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/author/promotion" element={
-              <ProtectedRoute allowedRoles={['author']}>
-                <AppLayout><AuthorPromotion /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/author/analytics" element={
-              <ProtectedRoute allowedRoles={['author']}>
-                <AppLayout><AuthorAnalytics /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/author/collaboration" element={
-              <ProtectedRoute allowedRoles={['author']}>
-                <AppLayout><AuthorCollaboration /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/author/ai-tools" element={
-              <ProtectedRoute allowedRoles={['author']}>
-                <AppLayout><AuthorAITools /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/instructor" element={
-              <ProtectedRoute allowedRoles={['instructor']}>
-                <AppLayout><InstructorDashboard /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/instructor/course-creation" element={
-              <ProtectedRoute allowedRoles={['instructor']}>
-                <AppLayout><CourseCreation /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/instructor/interactive-lessons" element={
-              <ProtectedRoute allowedRoles={['instructor']}>
-                <AppLayout><InteractiveLessons /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/instructor/quiz-system" element={
-              <ProtectedRoute allowedRoles={['instructor']}>
-                <AppLayout><QuizSystem /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/instructor/ai-generator" element={
-              <ProtectedRoute allowedRoles={['instructor']}>
-                <AppLayout><AIGenerator /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/instructor/certificates" element={
-              <ProtectedRoute allowedRoles={['instructor']}>
-                <AppLayout><CertificateSystem /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/student" element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <AppLayout><StudentDashboard /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AppLayout><AdminDashboard /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/users" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AppLayout><AdminUsers /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/music-projects" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AppLayout><AdminMusicProjects /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/digital-publications" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AppLayout><AdminDigitalPublications /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/courses" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AppLayout><AdminCourses /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/analytics" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AppLayout><AdminAnalytics /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/settings" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AppLayout><AdminSettings /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/database" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AppLayout><AdminDatabase /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/music-publishing" element={
-              <ProtectedRoute allowedRoles={['artist', 'admin']}>
-                <AppLayout><MusicPublishing /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/digital-publishing" element={
-              <ProtectedRoute allowedRoles={['author', 'admin']}>
-                <AppLayout><DigitalPublishing /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/e-learning" element={
-              <ProtectedRoute allowedRoles={['student', 'instructor', 'admin']}>
-                <AppLayout><ELearningPlatform /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/marketplace" element={
-              <ProtectedRoute>
-                <AppLayout><MarketplaceBrowse /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/product/:id" element={
-              <ProtectedRoute>
-                <AppLayout><ProductDetails /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <AppLayout><UserProfile /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/payments" element={
-              <ProtectedRoute>
-                <AppLayout><PaymentHistory /></AppLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/subscription" element={
-              <ProtectedRoute>
-                <AppLayout><SubscriptionManagement /></AppLayout>
-              </ProtectedRoute>
-            } />
+
+            {/* === NOWA, UPROSZCZONA STRUKTURA TRAS CHRONIONYCH === */}
+            <Route
+              element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }
+            >
+              {/* Trasy Artysty */}
+              <Route path="/artist" element={<ArtistDashboard />} />
+              <Route path="/artist/distribution" element={<ArtistDistribution />} />
+              <Route path="/artist/content-id" element={<ArtistContentId />} />
+              <Route path="/artist/rights" element={<ArtistRights />} />
+              <Route path="/artist/promotion" element={<ArtistPromotion />} />
+              <Route path="/artist/collaboration" element={<ArtistCollaborationReal />} />
+              <Route path="/artist/ai-tools" element={<ArtistAITools />} />
+
+              {/* Trasy Autora */}
+              <Route path="/author" element={<AuthorDashboard />} />
+              <Route path="/author/distribution" element={<AuthorDistribution />} />
+              <Route path="/author/copyright" element={<AuthorCopyright />} />
+              <Route path="/author/rights" element={<AuthorRights />} />
+              <Route path="/author/promotion" element={<AuthorPromotion />} />
+              <Route path="/author/analytics" element={<AuthorAnalytics />} />
+              <Route path="/author/collaboration" element={<AuthorCollaboration />} />
+              <Route path="/author/ai-tools" element={<AuthorAITools />} />
+
+              {/* Trasy Instruktora */}
+              <Route path="/instructor" element={<InstructorDashboard />} />
+              <Route path="/instructor/course-creation" element={<CourseCreation />} />
+              <Route path="/instructor/interactive-lessons" element={<InteractiveLessons />} />
+              <Route path="/instructor/quiz-system" element={<QuizSystem />} />
+              <Route path="/instructor/ai-generator" element={<AIGenerator />} />
+              <Route path="/instructor/certificates" element={<CertificateSystem />} />
+
+              {/* Trasy Studenta */}
+              <Route path="/student" element={<StudentDashboard />} />
+
+              {/* Trasy Admina */}
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/music-projects" element={<AdminMusicProjects />} />
+              <Route path="/admin/digital-publications" element={<AdminDigitalPublications />} />
+              <Route path="/admin/courses" element={<AdminCourses />} />
+              <Route path="/admin/analytics" element={<AdminAnalytics />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/admin/database" element={<AdminDatabase />} />
+
+              {/* Trasy Główne */}
+              <Route path="/music-publishing" element={<MusicPublishing />} />
+              <Route path="/digital-publishing" element={<DigitalPublishing />} />
+              <Route path="/e-learning" element={<ELearningPlatform />} />
+              <Route path="/marketplace" element={<MarketplaceBrowse />} />
+              <Route path="/product/:id" element={<ProductDetails />} />
+
+              {/* Trasy Profilu Użytkownika */}
+              <Route path="/profile" element={<UserProfile />} />
+              <Route path="/payments" element={<PaymentHistory />} />
+              <Route path="/subscription" element={<SubscriptionManagement />} />
+            </Route>
+
+            {/* === STRONA 404 === */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
