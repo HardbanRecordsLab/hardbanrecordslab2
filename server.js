@@ -11,8 +11,8 @@ const port = process.env.PORT || 3000;
 // Serwuj pliki statyczne z folderu 'dist'
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Ta reguła rozwiązuje problem z 404 przy odświeżaniu
-app.get('*', (req, res) => {
+// Ta reguła rozwiązuje problem z 404 przy odświeżaniu (z poprawką)
+app.get('/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
