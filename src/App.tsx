@@ -1,5 +1,4 @@
 // src/App.tsx
-import MyCoursesPage from './pages/elearning/MyCoursesPage';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -42,6 +41,7 @@ import QuizSystem from "./pages/eLearning/QuizSystem";
 import AIGenerator from "./pages/eLearning/AIGenerator";
 import CertificateSystem from "./pages/eLearning/CertificateSystem";
 import StudentDashboard from "./pages/eLearning/StudentDashboard";
+import MyCoursesPage from './pages/eLearning/MyCoursesPage';
 import MusicPublishing from "./pages/MusicPublishing";
 import DigitalPublishing from "./pages/DigitalPublishing";
 import ELearningPlatform from "./pages/ELearningPlatform";
@@ -103,6 +103,7 @@ const App = () => (
 
               {/* Trasy Studenta */}
               <Route path="/student" element={<StudentDashboard />} />
+              <Route path="/student/my-courses" element={<MyCoursesPage />} />
 
               {/* Trasy Admina */}
               <Route path="/admin" element={<AdminDashboard />} />

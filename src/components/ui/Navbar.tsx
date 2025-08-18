@@ -8,8 +8,13 @@ const navLinks = [
   { to: '/instructor', label: 'Panel Instruktora' },
   { to: '/admin', label: 'Panel Admina' },
   { to: '/music-publishing', label: 'Music Publishing' },
+  { to: '/digital-publishing', label: 'Digital Publishing' },
+  { to: '/e-learning', label: 'E-Learning' },
   { to: '/marketplace', label: 'Marketplace' },
+  { to: '/product-details', label: 'Product Details' },
   { to: '/profile', label: 'Profil' },
+  { to: '/payments', label: 'Payment History' },
+  { to: '/subscription', label: 'Subscription Management' },
 ];
 
 function Navbar() {
