@@ -13,7 +13,7 @@ import { FileUpload } from '@/components/FileUpload';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Music, Book, GraduationCap, Podcast, Package, Zap, Disc, Volume2 } from 'lucide-react';
+import { Music, Book, GraduationCap, Podcast, Package, Zap, Disc, Volume2, Sparkles, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 const productSchema = z.object({
@@ -26,6 +26,8 @@ const productSchema = z.object({
   languages: z.array(z.string()).default(['pl']),
   license_type: z.enum(['standard', 'exclusive', 'non_exclusive', 'creative_commons', 'royalty_free']),
   release_date: z.string().optional(),
+  isrc: z.string().optional(),
+  upc: z.string().optional(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -66,6 +68,7 @@ export const ProductCreationWizard: React.FC<ProductCreationWizardProps> = ({
 }) => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [generatingCode, setGeneratingCode] = useState<'isrc' | 'upc' | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [contentFile, setContentFile] = useState<File | null>(null);
   const [newTag, setNewTag] = useState('');
@@ -83,18 +86,43 @@ export const ProductCreationWizard: React.FC<ProductCreationWizardProps> = ({
       genres: [],
       languages: ['pl'],
       license_type: 'standard',
+      isrc: '',
+      upc: '',
     },
   });
 
   const watchedProductType = form.watch('product_type');
   const watchedTags = form.watch('tags');
 
+  const handleGenerateCode = async (type: 'isrc' | 'upc') => {
+    setGeneratingCode(type);
+    toast({ title: `Generowanie kodu ${type.toUpperCase()}...`, description: "Proszę czekać." });
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-codes', {
+        body: { type },
+      });
+      if (error) throw error;
+
+      form.setValue(type, data.code);
+      toast({ title: "Sukces!", description: `Kod ${type.toUpperCase()} został wygenerowany i wstawiony.` });
+    } catch (error: any) {
+      toast({
+        title: "Błąd",
+        description: `Nie udało się wygenerować kodu: ${error.message}`,
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingCode(null);
+    }
+  };
+
+
   const addTag = useCallback(() => {
     if (newTag.trim() && !watchedTags.includes(newTag.trim())) {
       form.setValue('tags', [...watchedTags, newTag.trim()]);
       setNewTag('');
     }
-  }, [newTag, watchedTags, form]);
+  }, [newTag, watchedTags, form);
 
   const removeTag = useCallback((tagToRemove: string) => {
     form.setValue('tags', watchedTags.filter(tag => tag !== tagToRemove));
@@ -105,8 +133,8 @@ export const ProductCreationWizard: React.FC<ProductCreationWizardProps> = ({
       toast({
         title: "Błąd",
         description: "Musisz być zalogowany aby utworzyć produkt",
-        variant: "destructive",
-      });
+                        variant: "destructive",
+                      });
       return;
     }
 
@@ -162,12 +190,13 @@ export const ProductCreationWizard: React.FC<ProductCreationWizardProps> = ({
           release_date: data.release_date ? new Date(data.release_date).toISOString() : null,
           file_size: contentFile?.size || null,
           file_format: contentFile?.type || null,
+          isrc: data.isrc,
+          upc: data.upc,
         })
         .select()
         .single();
 
       if (error) throw error;
-
       toast({
         title: "Sukces!",
         description: "Produkt został utworzony pomyślnie",
@@ -254,7 +283,7 @@ export const ProductCreationWizard: React.FC<ProductCreationWizardProps> = ({
               <CardHeader>
                 <CardTitle>Krok 2: Podstawowe informacje</CardTitle>
                 <CardDescription>
-                  Podaj tytuł, opis i cenę swojego produktu
+                  Podaj tytuł, opis, cenę i kody swojego produktu
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -281,7 +310,7 @@ export const ProductCreationWizard: React.FC<ProductCreationWizardProps> = ({
                       <FormControl>
                         <Textarea
                           placeholder="Opisz swój produkt..."
-                          className="min-h-[100px]"
+                          className="min-h-[100px"
                           {...field}
                         />
                       </FormControl>
@@ -341,6 +370,71 @@ export const ProductCreationWizard: React.FC<ProductCreationWizardProps> = ({
                   />
                 </div>
 
+                {(watchedProductType === 'music' || watchedProductType === 'beat') && (
+                  <div className="space-y-4 pt-4 border-t">
+                    <FormField
+                      control={form.control}
+                      name="isrc"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Kod ISRC (dla pojedynczego utworu)</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input placeholder="PL-ABC-24-00001" {...field} />
+                            </FormControl>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => handleGenerateCode('isrc')}
+                              disabled={!!generatingCode}
+                            >
+                              {generatingCode === 'isrc' ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Sparkles className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                          <FormDescription>
+                            Międzynarodowy standardowy kod nagrania.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="upc"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Kod UPC (dla albumu/singla)</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input placeholder="12-cyfrowy kod kreskowy" {...field} />
+                            </FormControl>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => handleGenerateCode('upc')}
+                              disabled={!!generatingCode}
+                            >
+                              {generatingCode === 'upc' ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Sparkles className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                          <FormDescription>
+                            Uniwersalny kod produktu dla wydania.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
                 <FormField
                   control={form.control}
                   name="release_date"
@@ -386,7 +480,7 @@ export const ProductCreationWizard: React.FC<ProductCreationWizardProps> = ({
                               onClick={() => {
                                 const newGenres = field.value.includes(genre)
                                   ? field.value.filter(g => g !== genre)
-                                  : [...field.value, genre];
+                                  : [...field.value, genre;
                                 field.onChange(newGenres);
                               }}
                             >
