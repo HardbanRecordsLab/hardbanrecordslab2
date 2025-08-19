@@ -1,14 +1,17 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
-import { Bell, Home, LineChart, LogOut, Menu, Package, Search, ShoppingCart, Users } from "lucide-react";
+import { useNotifications } from "@/contexts/NotificationsContext";
+import { Bell, Home, LineChart, LogOut, Menu, Package, Search, ShoppingCart, Users, CheckCheck } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 
-export function Header() {
+export default function Header() {
   const { profile, signOut } = useAuth();
+  const { notifications, unreadCount, markAllAsRead } = useNotifications();
 
   const getInitials = () => {
     if (!profile?.full_name) return "?";
@@ -71,14 +74,47 @@ export function Header() {
         </form>
       </div>
 
-      <Button variant="outline" size="icon" className="relative">
-        <Bell className="h-4 w-4" />
-        <span className="absolute -top-1 -right-1 flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-sky-500"></span>
-        </span>
-        <span className="sr-only">Toggle notifications</span>
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="icon" className="relative">
+            <Bell className="h-4 w-4" />
+            {unreadCount > 0 && (
+              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 justify-center rounded-full p-0">
+                {unreadCount}
+              </Badge>
+            )}
+            <span className="sr-only">Toggle notifications</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-80">
+          <DropdownMenuLabel className="flex justify-between items-center">
+            <span>Powiadomienia</span>
+            {unreadCount > 0 && (
+              <Button variant="ghost" size="sm" onClick={markAllAsRead} className="h-auto px-2 py-1 text-xs">
+                <CheckCheck className="mr-1 h-3 w-3" />
+                Oznacz wszystkie jako przeczytane
+              </Button>
+            )}
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            {notifications.length > 0 ? (
+              notifications.slice(0, 5).map((notif) => (
+                <DropdownMenuItem key={notif.id} className={`flex flex-col items-start gap-1 ${!notif.is_read ? 'font-bold' : ''}`}>
+                  <p className="text-sm">{notif.title}</p>
+                  {notif.description && (
+                    <p className="text-xs text-muted-foreground font-normal">{notif.description}</p>
+                  )}
+                </DropdownMenuItem>
+              ))
+            ) : (
+              <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                Brak nowych powiadomień
+              </div>
+            )}
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
