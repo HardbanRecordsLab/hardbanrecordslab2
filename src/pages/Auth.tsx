@@ -1,4 +1,4 @@
-// src/pages/Auth.tsx - NAPRAWIONY
+// src/pages/Auth.tsx - Zaktualizowany do pracy z AuthContext
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -27,11 +27,12 @@ export default function Auth() {
     try {
       if (isLogin) {
         await login(email, password);
-        navigate("/dashboard"); // Przekierowanie po udanym logowaniu
+        // Po udanym logowaniu, nawigujemy do głównego panelu
+        navigate("/admin"); 
       } else {
         await register(email, password);
         setMessage("Rejestracja pomyślna! Możesz się teraz zalogować.");
-        setIsLogin(true); // Przełącz na widok logowania
+        setIsLogin(true);
       }
     } catch (err: any) {
       setError(err.message || "Wystąpił błąd.");
@@ -41,11 +42,11 @@ export default function Auth() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center">
-            {isLogin ? "Zaloguj się" : "Zarejestruj się"}
+            {isLogin ? "Witaj w HardbanRecords Lab" : "Stwórz Nowe Konto"}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -72,17 +73,21 @@ export default function Auth() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              {error && <p className="text-red-500 text-sm">{error}</p>}
-              {message && <p className="text-green-500 text-sm">{message}</p>}
+              {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+              {message && <p className="text-green-500 text-sm text-center">{message}</p>}
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Przetwarzanie..." : isLogin ? "Zaloguj" : "Zarejestruj"}
+                {loading ? "Przetwarzanie..." : isLogin ? "Zaloguj się" : "Zarejestruj"}
               </Button>
             </div>
           </form>
           <div className="mt-4 text-center text-sm">
             {isLogin ? "Nie masz konta? " : "Masz już konto? "}
             <button
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError("");
+                setMessage("");
+              }}
               className="underline"
             >
               {isLogin ? "Zarejestruj się" : "Zaloguj się"}

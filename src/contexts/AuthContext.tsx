@@ -1,8 +1,8 @@
-// src/contexts/AuthContext.tsx - NAPRAWIONY
+// src/contexts/AuthContext.tsx - Zaktualizowany do pracy z FastAPI
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { jwtDecode } from 'jwt-decode';
 
-// Definicja typów dla użytkownika i tokenu
+// Definicja typów dla tokenu JWT i użytkownika
 interface DecodedToken {
   sub: string; // Email jest w polu 'sub'
   role: string;
@@ -38,7 +38,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (storedToken) {
       try {
         const decoded = jwtDecode<DecodedToken>(storedToken);
-        // Sprawdzamy, czy token nie wygasł
         if (decoded.exp * 1000 > Date.now()) {
           setUser({ email: decoded.sub, role: decoded.role });
           setToken(storedToken);
@@ -54,9 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    if (!API_URL) {
-      throw new Error("VITE_API_BASE_URL is not defined in .env.local file");
-    }
+    if (!API_URL) throw new Error("VITE_API_BASE_URL is not defined in .env.local file");
     
     const formData = new URLSearchParams();
     formData.append('username', email);
@@ -82,9 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const register = async (email: string, password: string) => {
-     if (!API_URL) {
-      throw new Error("VITE_API_BASE_URL is not defined in .env.local file");
-    }
+     if (!API_URL) throw new Error("VITE_API_BASE_URL is not defined in .env.local file");
 
     const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
@@ -102,6 +97,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setToken(null);
     localStorage.removeItem('access_token');
+    // Przekierowanie na stronę główną po wylogowaniu
+    window.location.href = '/';
   };
 
   return (
