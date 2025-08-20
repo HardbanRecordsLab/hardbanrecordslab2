@@ -1,107 +1,144 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ProductCreationWizard } from "@/components/digital-products/ProductCreationWizard";
+// src/pages/ArtistDashboard.tsx - Zaktualizowany i podłączony do API
+import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+
+// Definicja typu dla pojedynczego wydania muzycznego
+interface MusicRelease {
+  id: number;
+  title: string;
+  artist: string;
+  status: string;
+  release_meta: {
+    genre?: string;
+    original_filename?: string;
+  };
+}
+
+// Funkcja pomocnicza do pobierania danych z API
+const fetchFromApi = async (endpoint: string, token: string) => {
+  const API_URL = import.meta.env.VITE_API_BASE_URL;
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.json();
+};
+
+
 export default function ArtistDashboard() {
-  const { user, profile } = useAuth()
-  const { toast } = useToast()
-  const [projects, setProjects] = useState<any[]>([])
-  const [stats, setStats] = useState<ProjectStats>({
-    // ... (bez zmian)
-  })
-  const [loading, setLoading] = useState(true)
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const { user, token } = useAuth();
+  const [releases, setReleases] = useState<MusicRelease[]>([]);
+  const [stats, setStats] = useState({ total_releases: 0, published_releases: 0 });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
-      fetchArtistData()
-    }
-  }, [user])
+    const loadDashboardData = async () => {
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
 
-  const fetchArtistData = async () => {
-    // ... (implementacja bez zmian)
-  }
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('pl-PL').format(num)
-  }
+      try {
+        setIsLoading(true);
+        setError(null);
 
-  const handleProductCreated = () => {
-    setIsWizardOpen(false);
-    fetchArtistData(); // Odśwież dane po utworzeniu produktu
-  }
+        // Równoległe pobieranie danych
+        const [releasesData, statsData] = await Promise.all([
+          fetchFromApi('/music/releases/', token),
+          fetchFromApi('/music/stats', token)
+        ]);
+
+        setReleases(releasesData);
+        setStats(statsData);
+
+      } catch (err) {
+        setError("Nie udało się załadować danych. Spróbuj odświeżyć stronę.");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, [token]);
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Section */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">
-            Witaj ponownie, <span className="text-primary">{profile?.full_name || 'Artysto'}</span>! 👋
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Zarządzaj swoją muzyką i śledź postępy w karierze
-          </p>
-        </div>
-        <Dialog open={isWizardOpen} onOpenChange={setIsWizardOpen}>
-          <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Upload className="w-4 h-4" />
-          Dodaj Nowy Utwór
-        </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl h-full max-h-[90vh] flex flex-col">
-            <DialogHeader>
-              <DialogTitle>Kreator nowego produktu</DialogTitle>
-            </DialogHeader>
-            <div className="flex-grow overflow-y-auto">
-              <ProductCreationWizard
-                onProductCreated={handleProductCreated}
-                onCancel={() => setIsWizardOpen(false)}
-        />
-      </div>
-          </DialogContent>
-        </Dialog>
-                      </div>
+    <div className="container mx-auto p-4 md:p-8">
+      <h1 className="text-3xl font-bold mb-6">Witaj, {user?.email || 'Artysto'}!</h1>
 
-      {/* Stats Cards (bez zmian) */}
-      {/* ... */}
-
-      {/* Recent Activity & Quick Actions */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Recent projects card (bez zmian) */}
+      {/* Sekcja Statystyk */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <Card>
-          {/* ... */}
-        </Card>
-      <Card>
-        <CardHeader>
-            <CardTitle>Szybkie akcje</CardTitle>
-            <CardDescription>Najczęściej używane funkcje</CardDescription>
+          <CardHeader>
+            <CardTitle>Wszystkie Wydania</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Button
-              variant="outline"
-              className="w-full justify-start gap-2"
-              onClick={() => setIsWizardOpen(true)}
-            >
-              <Upload className="w-4 h-4" />
-              Prześlij nowy utwór
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <TrendingUp className="w-4 h-4" />
-              Zobacz statystyki
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <DollarSign className="w-4 h-4" />
-              Zarządzaj wypłatami
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <Music className="w-4 h-4" />
-              Edytuj profil artysty
-            </Button>
+          <CardContent>
+            <p className="text-4xl font-bold">{isLoading ? '...' : stats.total_releases}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Opublikowane</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">{isLoading ? '...' : stats.published_releases}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Sekcja Ostatnich Wydań */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Twoje Wydania Muzyczne</CardTitle>
+          <Button>
+            <PlusCircle className="mr-2 h-4 w-4" /> Dodaj Nowe Wydanie
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {error && <p className="text-red-500 text-center">{error}</p>}
+          {isLoading ? (
+            <p className="text-center">Ładowanie Twoich wydań...</p>
+          ) : releases.length === 0 ? (
+            <p className="text-center text-gray-500">Nie masz jeszcze żadnych wydań. Czas dodać pierwsze!</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tytuł</TableHead>
+                  <TableHead>Artysta</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Gatunek</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {releases.map((release) => (
+                  <TableRow key={release.id}>
+                    <TableCell className="font-medium">{release.title}</TableCell>
+                    <TableCell>{release.artist}</TableCell>
+                    <TableCell>
+                      <Badge variant={release.status === 'published' ? 'default' : 'secondary'}>
+                        {release.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{release.release_meta?.genre || 'N/A'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
-
-      {/* Notifications card (bez zmian) */}
-      {/* ... */}
-    </div>
-  )
+  );
 }

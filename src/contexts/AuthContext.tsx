@@ -1,136 +1,120 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { User, Session } from '@supabase/supabase-js'
-import { supabase } from '@/integrations/supabase/client'
+// src/contexts/AuthContext.tsx - NAPRAWIONY
+import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { jwtDecode } from 'jwt-decode';
+
+// Definicja typów dla użytkownika i tokenu
+interface DecodedToken {
+  sub: string; // Email jest w polu 'sub'
+  role: string;
+  exp: number;
+}
+
+interface User {
+  email: string;
+  role: string;
+}
 
 interface AuthContextType {
-  user: User | null
-  session: Session | null
-  profile: any | null
-  loading: boolean
-  signIn: (email: string, password: string) => Promise<{ error: any }>
-  signUp: (email: string, password: string, userData?: any) => Promise<{ error: any }>
-  signOut: () => Promise<void>
-  refreshProfile: () => Promise<void>
+  user: User | null;
+  token: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+  isLoading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+// Pobieramy adres URL naszego API ze zmiennych środowiskowych
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
-export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
-}
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-interface AuthProviderProps {
-  children: ReactNode
-}
-
-export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
-  const [profile, setProfile] = useState<any | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle()
-      
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error)
-        return
-      }
-      
-      setProfile(data)
-    } catch (error) {
-      console.error('Error fetching profile:', error)
-    }
-  }
-
-  const refreshProfile = async () => {
-    if (user) {
-      await fetchProfile(user.id)
-    }
-  }
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session)
-        setUser(session?.user ?? null)
-        
-        // Defer profile fetch to avoid deadlock
-        if (session?.user) {
-          setTimeout(() => {
-            fetchProfile(session.user.id)
-          }, 0)
+    const storedToken = localStorage.getItem('access_token');
+    if (storedToken) {
+      try {
+        const decoded = jwtDecode<DecodedToken>(storedToken);
+        // Sprawdzamy, czy token nie wygasł
+        if (decoded.exp * 1000 > Date.now()) {
+          setUser({ email: decoded.sub, role: decoded.role });
+          setToken(storedToken);
         } else {
-          setProfile(null)
+          localStorage.removeItem('access_token');
         }
-        
-        setLoading(false)
+      } catch (error) {
+        console.error("Invalid token:", error);
+        localStorage.removeItem('access_token');
       }
-    )
+    }
+    setIsLoading(false);
+  }, []);
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      
-      if (session?.user) {
-        setTimeout(() => {
-          fetchProfile(session.user.id)
-        }, 0)
-      }
-      
-      setLoading(false)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    return { error }
-  }
-
-  const signUp = async (email: string, password: string, userData?: any) => {
-    const redirectUrl = `${window.location.origin}/`
+  const login = async (email: string, password: string) => {
+    if (!API_URL) {
+      throw new Error("VITE_API_BASE_URL is not defined in .env.local file");
+    }
     
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: userData
-      }
-    })
-    return { error }
-  }
+    const formData = new URLSearchParams();
+    formData.append('username', email);
+    formData.append('password', password);
 
-  const signOut = async () => {
-    await supabase.auth.signOut()
-  }
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData,
+    });
 
-  const value = {
-    user,
-    session,
-    profile,
-    loading,
-    signIn,
-    signUp,
-    signOut,
-    refreshProfile,
-  }
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Login failed');
+    }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
+    const data = await response.json();
+    const decoded = jwtDecode<DecodedToken>(data.access_token);
+    
+    setUser({ email: decoded.sub, role: decoded.role });
+    setToken(data.access_token);
+    localStorage.setItem('access_token', data.access_token);
+  };
+
+  const register = async (email: string, password: string) => {
+     if (!API_URL) {
+      throw new Error("VITE_API_BASE_URL is not defined in .env.local file");
+    }
+
+    const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+    });
+    
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Registration failed');
+    }
+  };
+
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('access_token');
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, token, login, register, logout, isLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
