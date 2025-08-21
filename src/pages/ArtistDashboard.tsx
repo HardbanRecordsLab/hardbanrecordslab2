@@ -11,17 +11,18 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from "sonner";
 
-// Zod schema for form validation
+// Zaktualizowana schema walidacji Zod
 const releaseSchema = z.object({
   title: z.string().min(1, "Tytuł jest wymagany"),
   artist: z.string().min(1, "Artysta jest wymagany"),
   genre: z.string().min(1, "Gatunek jest wymagany"),
   audio_file: z.instanceof(FileList).refine(files => files?.length === 1, "Plik audio jest wymagany."),
+  cover_art_file: z.instanceof(FileList).optional(), // Okładka jest opcjonalna
 });
 
 type ReleaseFormData = z.infer<typeof releaseSchema>;
 
-// Typy dla danych z API
+// Zaktualizowane typy dla danych z API
 interface UserStats {
   total_releases: number;
   published_releases: number;
@@ -35,6 +36,7 @@ interface MusicRelease {
   status: string;
   release_meta: {
     genre?: string;
+    cover_art_url?: string;
   };
 }
 
@@ -42,9 +44,8 @@ const ArtistDashboard = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // 1. Pobieranie statystyk użytkownika
+  // Pobieranie statystyk (bez zmian)
   const { data: stats, isLoading: isLoadingStats } = useQuery<UserStats>({
-    queryKey: ['userStats', user?.id],
     queryKey: ['userStats', user?.id],
     queryFn: async () => {
       const { data } = await axiosClient.get('/music/stats');
@@ -53,9 +54,8 @@ const ArtistDashboard = () => {
     enabled: !!user,
   });
 
-  // 2. Pobieranie listy wydań
+  // Pobieranie listy wydań (bez zmian)
   const { data: releases, isLoading: isLoadingReleases } = useQuery<MusicRelease[]>({
-    queryKey: ['musicReleases', user?.id],
     queryKey: ['musicReleases', user?.id],
     queryFn: async () => {
       const { data } = await axiosClient.get('/music/releases/');
@@ -64,13 +64,11 @@ const ArtistDashboard = () => {
     enabled: !!user,
   });
 
-  // 3. Mutacja do tworzenia nowego wydania
+  // Mutacja do tworzenia wydania (bez zmian w logice, ale obsłuży nowe pole)
   const { mutate: createRelease, isPending: isCreatingRelease } = useMutation({
     mutationFn: async (formData: FormData) => {
       const { data } = await axiosClient.post('/music/releases/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       return data;
     },
@@ -80,23 +78,29 @@ const ArtistDashboard = () => {
       queryClient.invalidateQueries({ queryKey: ['userStats', user?.id] });
       reset();
     },
-    onError: (error) => {
-      toast.error("Błąd", { description: `Nie udało się dodać wydania: ${error.message}` });
+    onError: (error: any) => {
+        const errorMsg = error.response?.data?.detail || error.message;
+        toast.error("Błąd", { description: `Nie udało się dodać wydania: ${errorMsg}` });
     },
   });
 
-
-  // 4. Konfiguracja formularza
+  // Konfiguracja formularza (bez zmian)
   const { register, handleSubmit, control, reset, formState: { errors } } = useForm<ReleaseFormData>({
     resolver: zodResolver(releaseSchema),
   });
 
+  // Logika wysyłania formularza (zaktualizowana o okładkę)
   const onSubmit = (data: ReleaseFormData) => {
     const formData = new FormData();
     formData.append('title', data.title);
     formData.append('artist', data.artist);
     formData.append('genre', data.genre);
     formData.append('audio_file', data.audio_file[0]);
+
+    // Dodajemy okładkę do FormData tylko jeśli została wybrana
+    if (data.cover_art_file && data.cover_art_file.length > 0) {
+      formData.append('cover_art_file', data.cover_art_file[0]);
+    }
 
     createRelease(formData);
   };
@@ -105,79 +109,34 @@ const ArtistDashboard = () => {
     <div className="container mx-auto p-6 space-y-8">
       <h1 className="text-3xl font-bold">Panel Artysty</h1>
 
-      {/* Sekcja Statystyk */}
+      {/* Sekcja Statystyk (bez zmian) */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Wszystkie Wydania</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{isLoadingStats ? '...' : stats?.total_releases ?? 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Opublikowane</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{isLoadingStats ? '...' : stats?.published_releases ?? 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Wersje Robocze</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{isLoadingStats ? '...' : stats?.draft_releases ?? 0}</div>
-          </CardContent>
-        </Card>
+        {/* ... (karty statystyk bez zmian) ... */}
+         <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Wszystkie Wydania</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{isLoadingStats ? '...' : stats?.total_releases ?? 0}</div></CardContent></Card>
+        <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Opublikowane</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{isLoadingStats ? '...' : stats?.published_releases ?? 0}</div></CardContent></Card>
+        <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Wersje Robocze</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{isLoadingStats ? '...' : stats?.draft_releases ?? 0}</div></CardContent></Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Formularz Dodawania Wydania */}
+        {/* Zaktualizowany Formularz */}
         <div className="lg:col-span-1">
             <Card>
-                <CardHeader>
-                    <CardTitle>Dodaj Nowy Utwór</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Dodaj Nowy Utwór</CardTitle></CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                        {/* Pola title, artist, genre (bez zmian) */}
+                        <div><Label htmlFor="title">Tytuł utworu</Label><Input id="title" {...register("title")} />{errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}</div>
+                        <div><Label htmlFor="artist">Artysta</Label><Input id="artist" {...register("artist")} />{errors.artist && <p className="text-red-500 text-xs mt-1">{errors.artist.message}</p>}</div>
+                        <div><Label>Gatunek</Label><Controller name="genre" control={control} render={({ field }) => (<Select onValueChange={field.onChange} defaultValue={field.value}><SelectTrigger><SelectValue placeholder="Wybierz gatunek" /></SelectTrigger><SelectContent><SelectItem value="Electronic">Electronic</SelectItem><SelectItem value="Hip-Hop">Hip-Hop</SelectItem><SelectItem value="Rock">Rock</SelectItem><SelectItem value="Pop">Pop</SelectItem><SelectItem value="Jazz">Jazz</SelectItem></SelectContent></Select>)} />{errors.genre && <p className="text-red-500 text-xs mt-1">{errors.genre.message}</p>}</div>
+                        
+                        {/* Pole Plik Audio (bez zmian) */}
+                        <div><Label htmlFor="audio_file">Plik Audio (MP3, WAV, FLAC)</Label><Input id="audio_file" type="file" accept=".mp3,.wav,.flac" {...register("audio_file")} />{errors.audio_file && <p className="text-red-500 text-xs mt-1">{errors.audio_file.message}</p>}</div>
+
+                        {/* NOWE POLE: OKŁADKA */}
                         <div>
-                            <Label htmlFor="title">Tytuł utworu</Label>
-                            <Input id="title" {...register("title")} />
-                            {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
-                        </div>
-                        <div>
-                            <Label htmlFor="artist">Artysta</Label>
-                            <Input id="artist" {...register("artist")} />
-                            {errors.artist && <p className="text-red-500 text-xs mt-1">{errors.artist.message}</p>}
-                        </div>
-                        <div>
-                            <Label>Gatunek</Label>
-                             <Controller
-                                name="genre"
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Wybierz gatunek" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Electronic">Electronic</SelectItem>
-                                            <SelectItem value="Hip-Hop">Hip-Hop</SelectItem>
-                                            <SelectItem value="Rock">Rock</SelectItem>
-                                            <SelectItem value="Pop">Pop</SelectItem>
-                                            <SelectItem value="Jazz">Jazz</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.genre && <p className="text-red-500 text-xs mt-1">{errors.genre.message}</p>}
-                        </div>
-                        <div>
-                            <Label htmlFor="audio_file">Plik Audio (MP3, WAV, FLAC)</Label>
-                            <Input id="audio_file" type="file" accept=".mp3,.wav,.flac" {...register("audio_file")} />
-                            {errors.audio_file && <p className="text-red-500 text-xs mt-1">{errors.audio_file.message}</p>}
+                            <Label htmlFor="cover_art_file">Okładka (JPG, PNG)</Label>
+                            <Input id="cover_art_file" type="file" accept="image/jpeg,image/png" {...register("cover_art_file")} />
+                            {errors.cover_art_file && <p className="text-red-500 text-xs mt-1">{errors.cover_art_file.message}</p>}
                         </div>
 
                         <Button type="submit" className="w-full" disabled={isCreatingRelease}>
@@ -188,20 +147,21 @@ const ArtistDashboard = () => {
             </Card>
         </div>
 
-        {/* Lista Wydań */}
+        {/* Zaktualizowana Lista Wydań (wyświetla okładkę) */}
         <div className="lg:col-span-2">
             <Card>
-                <CardHeader>
-                    <CardTitle>Twoje Wydania</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Twoje Wydania</CardTitle></CardHeader>
                 <CardContent>
-                    {isLoadingReleases ? (
-                        <p>Ładowanie listy wydań...</p>
-                    ) : releases && releases.length > 0 ? (
+                    {isLoadingReleases ? (<p>Ładowanie listy wydań...</p>) : releases && releases.length > 0 ? (
                         <ul className="space-y-4">
                             {releases.map((release) => (
-                                <li key={release.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                                    <div>
+                                <li key={release.id} className="flex items-center p-3 bg-slate-50 rounded-lg space-x-4">
+                                    <img 
+                                      src={release.release_meta.cover_art_url || 'https://placehold.co/64x64/EEE/31343C?text=Brak'} 
+                                      alt={`Okładka ${release.title}`}
+                                      className="w-16 h-16 rounded-md object-cover bg-gray-200"
+                                    />
+                                    <div className="flex-grow">
                                         <p className="font-semibold">{release.title}</p>
                                         <p className="text-sm text-gray-500">{release.artist}</p>
                                     </div>
@@ -210,7 +170,7 @@ const ArtistDashboard = () => {
                             ))}
                         </ul>
                     ) : (
-                        <p className="text-center text-gray-500 py-8">Nie masz jeszcze żadnych wydań. Dodaj swoje pierwsze!</p>
+                        <p className="text-center text-gray-500 py-8">Nie masz jeszcze żadnych wydań.</p>
                     )}
                 </CardContent>
             </Card>
