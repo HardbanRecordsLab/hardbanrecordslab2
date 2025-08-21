@@ -1,0 +1,142 @@
+// src/components/dashboard/RoyaltySplitDialog.tsx
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useForm, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { axiosClient } from '@/api/axios';
+import { toast } from 'sonner';
+import { Trash2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+
+// --- Typy i Schematy ---
+interface MusicRelease {
+    id: number;
+    title: string;
+    royalty_splits: RoyaltySplitShare[];
+}
+
+interface RoyaltySplitShare {
+    email: string;
+    share: number;
+}
+
+const splitSchema = z.object({
+    splits: z.array(z.object({
+        email: z.string().email("Nieprawidłowy adres email."),
+        share: z.coerce.number().min(1, "Wartość musi być > 0").max(100, "Wartość musi być <= 100"),
+    })).refine(splits => splits.reduce((acc, split) => acc + split.share, 0) === 100, {
+        message: "Suma udziałów musi wynosić dokładnie 100%",
+        path: ["root"],
+    }),
+});
+
+type FormData = z.infer<typeof splitSchema>;
+
+interface RoyaltySplitDialogProps {
+    release: MusicRelease | null;
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+// --- Komponent ---
+export const RoyaltySplitDialog = ({ release, isOpen, onClose }: RoyaltySplitDialogProps) => {
+    const { user } = useAuth();
+    const queryClient = useQueryClient();
+    
+    const { register, handleSubmit, control, formState: { errors }, watch } = useForm<FormData>({
+        resolver: zodResolver(splitSchema),
+        defaultValues: { splits: release?.royalty_splits || [] }
+    });
+
+    const { fields, append, remove } = useFieldArray({ control, name: "splits" });
+    const splitsArray = watch("splits");
+    const totalShare = splitsArray.reduce((acc, field) => acc + (Number(field.share) || 0), 0);
+
+    // Mutacja do aktualizacji podziału
+    const { mutate: updateSplits, isPending } = useMutation({
+        mutationFn: (data: RoyaltySplitShare[]) => {
+            if (!release) throw new Error("Brak wybranego wydania.");
+            return axiosClient.put(`/music/releases/${release.id}/splits`, data);
+        },
+        onSuccess: () => {
+            toast.success("Podział tantiem został zaktualizowany.");
+            queryClient.invalidateQueries({ queryKey: ['musicReleases', user?.id] });
+            onClose();
+        },
+        onError: (error: any) => {
+            const errorMsg = error.response?.data?.detail || error.message;
+            toast.error("Błąd", { description: `Nie udało się zapisać zmian: ${errorMsg}` });
+        }
+    });
+
+    const onSubmit = (data: FormData) => {
+        updateSplits(data.splits);
+    };
+
+    // Resetowanie formularza, gdy zmienia się wydanie
+    useEffect(() => {
+        if (release) {
+            control._reset({ splits: release.royalty_splits || [{email: user?.email || '', share: 100}] });
+        }
+    }, [release, control, user]);
+
+    if (!release) return null;
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                    <DialogTitle>Zarządzaj Podziałem Tantiem</DialogTitle>
+                    <DialogDescription>
+                        Podziel 100% przychodów dla utworu "{release.title}".
+                    </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                    <div>
+                        {fields.map((field, index) => (
+                            <div key={field.id} className="flex items-center space-x-2 mb-2">
+                                <Input
+                                    placeholder="Email współtwórcy"
+                                    {...register(`splits.${index}.email`)}
+                                    className="flex-grow"
+                                />
+                                <Input
+                                    type="number"
+                                    placeholder="%"
+                                    {...register(`splits.${index}.share`)}
+                                    className="w-20"
+                                />
+                                <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} disabled={fields.length <= 1}>
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ))}
+                         {errors.splits && errors.splits.root && <p className="text-red-500 text-sm mt-2">{errors.splits.root.message}</p>}
+                         {fields.map((_, index) => errors.splits?.[index] && <p key={index} className="text-red-500 text-xs mt-1">{errors.splits[index]?.email?.message || errors.splits[index]?.share?.message}</p>)}
+                    </div>
+
+                    <div className="flex justify-between items-center pt-4">
+                        <Button type="button" variant="outline" onClick={() => append({ email: '', share: 0 })}>
+                            Dodaj Osobę
+                        </Button>
+                        <div className={`text-lg font-bold ${totalShare === 100 ? 'text-green-600' : 'text-red-600'}`}>
+                            Suma: {totalShare}%
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button type="button" variant="secondary" onClick={onClose}>Anuluj</Button>
+                        <Button type="submit" disabled={isPending || totalShare !== 100}>
+                            {isPending ? "Zapisywanie..." : "Zapisz Zmiany"}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+};
