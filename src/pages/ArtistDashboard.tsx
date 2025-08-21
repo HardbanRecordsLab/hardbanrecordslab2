@@ -1,144 +1,108 @@
-// src/pages/ArtistDashboard.tsx - Zaktualizowany i podłączony do API
-import { useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+// Pełna zawartość pliku: src/pages/ArtistDashboard.tsx
 
-// Definicja typu dla pojedynczego wydania muzycznego
-interface MusicRelease {
-  id: number;
-  title: string;
-  artist: string;
-  status: string;
-  release_meta: {
-    genre?: string;
-    original_filename?: string;
-  };
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'react-router-dom';
+import { PlusCircle } from 'lucide-react';
+
+// Definicja typu dla pojedynczego wydania z API
+interface Release {
+    id: number;
+    title: string;
+    artist: string;
+    audio_file_path: string | null;
 }
 
-// Funkcja pomocnicza do pobierania danych z API
-const fetchFromApi = async (endpoint: string, token: string) => {
-  const API_URL = import.meta.env.VITE_API_BASE_URL;
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  });
+const ArtistDashboard: React.FC = () => {
+    const [releases, setReleases] = useState<Release[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+    const { token } = useAuth();
 
-  if (!response.ok) {
-    throw new Error('Network response was not ok');
-  }
-  return response.json();
+    useEffect(() => {
+        const fetchReleases = async () => {
+            if (!token) {
+                setLoading(false);
+                setError("Brak autoryzacji. Zaloguj się ponownie.");
+                return;
+            }
+
+            try {
+                // Adres URL Twojego API wdrożonego na Render.com
+                const apiUrl = 'https://hardbanrecords-lab-backend.onrender.com';
+                const response = await fetch(`${apiUrl}/releases/`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.detail || `Nie udało się pobrać danych (status: ${response.status}).`);
+                }
+
+                const data: Release[] = await response.json();
+                setReleases(data);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Wystąpił nieznany błąd');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchReleases();
+    }, [token]);
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight">Panel Artysty</h1>
+                    <p className="text-muted-foreground">Zarządzaj swoją muzyką i finansami.</p>
+                </div>
+                 <Button asChild>
+                    <Link to="/artist/add-release">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Dodaj Nowe Wydanie
+                    </Link>
+                </Button>
+            </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Moje Wydania Muzyczne</CardTitle>
+                    <CardDescription>Lista wszystkich Twoich utworów dodanych do systemu.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {loading && <p className="text-center text-muted-foreground">Ładowanie danych...</p>}
+                    {error && <p className="text-center text-red-500">Błąd: {error}</p>}
+                    {!loading && !error && (
+                        releases.length > 0 ? (
+                            <ul className="divide-y">
+                                {releases.map(release => (
+                                    <li key={release.id} className="py-3 flex justify-between items-center">
+                                        <span>
+                                            <span className="font-semibold">{release.title}</span>
+                                            <span className="text-muted-foreground"> - {release.artist}</span>
+                                        </span>
+                                        {/* W przyszłości można dodać przyciski akcji */}
+                                    </li>
+
+                                ))}
+                            </ul>
+                        ) : (
+                            <div className="text-center text-muted-foreground py-8">
+                                <p>Nie masz jeszcze żadnych wydań.</p>
+                                <p>Kliknij przycisk "Dodaj Nowe Wydanie", aby opublikować swój pierwszy utwór.</p>
+                            </div>
+                        )
+                    )}
+                </CardContent>
+            </Card>
+        </div>
+    );
 };
 
-
-export default function ArtistDashboard() {
-  const { user, token } = useAuth();
-  const [releases, setReleases] = useState<MusicRelease[]>([]);
-  const [stats, setStats] = useState({ total_releases: 0, published_releases: 0 });
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadDashboardData = async () => {
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        // Równoległe pobieranie danych
-        const [releasesData, statsData] = await Promise.all([
-          fetchFromApi('/music/releases/', token),
-          fetchFromApi('/music/stats', token)
-        ]);
-
-        setReleases(releasesData);
-        setStats(statsData);
-
-      } catch (err) {
-        setError("Nie udało się załadować danych. Spróbuj odświeżyć stronę.");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadDashboardData();
-  }, [token]);
-
-  return (
-    <div className="container mx-auto p-4 md:p-8">
-      <h1 className="text-3xl font-bold mb-6">Witaj, {user?.email || 'Artysto'}!</h1>
-
-      {/* Sekcja Statystyk */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Wszystkie Wydania</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold">{isLoading ? '...' : stats.total_releases}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Opublikowane</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold">{isLoading ? '...' : stats.published_releases}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Sekcja Ostatnich Wydań */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Twoje Wydania Muzyczne</CardTitle>
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" /> Dodaj Nowe Wydanie
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {error && <p className="text-red-500 text-center">{error}</p>}
-          {isLoading ? (
-            <p className="text-center">Ładowanie Twoich wydań...</p>
-          ) : releases.length === 0 ? (
-            <p className="text-center text-gray-500">Nie masz jeszcze żadnych wydań. Czas dodać pierwsze!</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tytuł</TableHead>
-                  <TableHead>Artysta</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Gatunek</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {releases.map((release) => (
-                  <TableRow key={release.id}>
-                    <TableCell className="font-medium">{release.title}</TableCell>
-                    <TableCell>{release.artist}</TableCell>
-                    <TableCell>
-                      <Badge variant={release.status === 'published' ? 'default' : 'secondary'}>
-                        {release.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{release.release_meta?.genre || 'N/A'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
+export default ArtistDashboard;

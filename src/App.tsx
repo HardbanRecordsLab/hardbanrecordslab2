@@ -1,4 +1,5 @@
-// src/App.tsx
+// Pełna, ZAKTUALIZOWANA zawartość pliku: src/App.tsx
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,7 +9,11 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
-import AppLayout from "../AppLayout"; // <--- OSTATECZNA POPRAWKA IMPORTU
+import AppLayout from "../AppLayout";
+
+// --- POCZĄTEK ZMIAN: DODAJ NOWY IMPORT ---
+import AddNewRelease from "./pages/AddNewRelease"; // Import nowej strony
+// --- KONIEC ZMIAN ---
 
 // Importy wszystkich stron (bez zmian)
 import AdminDashboard from "./pages/AdminDashboard";
@@ -72,24 +77,24 @@ const App = () => (
                   <Route element={<RoleProtectedRoute allowedRoles={["artist"]} />}>
                     <Route path="/artist" element={<ArtistDashboard />} />
                     <Route path="/artist/music-publishing" element={<MusicPublishing />} />
-                    {/* Add other artist-specific routes here */}
+                    
+                    {/* --- POCZĄTEK ZMIAN: DODAJ NOWĄ ŚCIEŻKĘ --- */}
+                    <Route path="/artist/add-release" element={<AddNewRelease />} />
+                    {/* --- KONIEC ZMIAN --- */}
                   </Route>
 
                   <Route element={<RoleProtectedRoute allowedRoles={["author"]} />}>
                     <Route path="/author" element={<AuthorDashboard />} />
                     <Route path="/author/digital-publishing" element={<DigitalPublishing />} />
-                    {/* Add other author-specific routes here */}
                   </Route>
 
                   <Route element={<RoleProtectedRoute allowedRoles={["instructor"]} />}>
                     <Route path="/instructor" element={<InstructorDashboard />} />
                     <Route path="/instructor/e-learning" element={<ELearningPlatform />} />
-                    {/* Add other instructor-specific routes here */}
                   </Route>
 
                   <Route element={<RoleProtectedRoute allowedRoles={["student"]} />}>
                     <Route path="/student" element={<StudentDashboard />} />
-                    {/* Add other student-specific routes here */}
                   </Route>
                 </Route>
               </Route>
