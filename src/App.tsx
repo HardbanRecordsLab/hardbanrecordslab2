@@ -1,114 +1,80 @@
-// Pełna, ZAKTUALIZOWANA zawartość pliku: src/App.tsx
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { Toaster } from "@/components/ui/sonner";
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { NotificationsProvider } from "@/contexts/NotificationsContext";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
-import AppLayout from "../AppLayout";
+// Importuj komponenty z poprawnymi ścieżkami
+import AppLayout from "@/components/AppLayout";
+import Auth from "@/pages/Auth";
+import LandingPage from "@/pages/LandingPage";
+import NotFound from "@/pages/NotFound";
+import AdminDashboard from "@/pages/AdminDashboard";
+import ArtistDashboard from "@/pages/ArtistDashboard";
+import AuthorDashboard from "@/pages/AuthorDashboard";
+import InstructorDashboard from "@/pages/eLearning/InstructorDashboard"; // POPRAWIONA ŚCIEŻKA
+import StudentDashboard from "@/pages/eLearning/StudentDashboard";   // POPRAWIONA ŚCIEŻKA
+import AddNewRelease from "@/pages/AddNewRelease";
 
-// --- POCZĄTEK ZMIAN: DODAJ NOWY IMPORT ---
-import AddNewRelease from "./pages/AddNewRelease"; // Import nowej strony
-// --- KONIEC ZMIAN ---
+// Komponent do ochrony ścieżek
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) {
+    return <div>Loading...</div>; // Możesz tu wstawić spinner
+  }
+  return isAuthenticated ? <>{children}</> : <Navigate to="/auth" />;
+};
 
-// Importy wszystkich stron (bez zmian)
-import AdminDashboard from "./pages/AdminDashboard";
-import Auth from "./pages/Auth";
-import LandingPage from "./pages/LandingPage";
-import ArtistDashboard from "./pages/ArtistDashboard";
-import AuthorDashboard from "./pages/AuthorDashboard";
-import InstructorDashboard from "./pages/InstructorDashboard";
-import StudentDashboard from "./pages/StudentDashboard";
-import MusicPublishing from "./pages/MusicPublishing";
-import DigitalPublishing from "./pages/DigitalPublishing";
-import ELearningPlatform from "./pages/ELearningPlatform";
-import MarketplaceBrowse from "./pages/MarketplaceBrowse";
-import ProductDetails from "./pages/ProductDetails";
-import UserProfile from "./pages/UserProfile";
-import PaymentHistory from "./pages/PaymentHistory";
-import SubscriptionManagement from "./pages/SubscriptionManagement";
+// Komponent do wyboru dashboardu na podstawie roli
+const RoleBasedDashboard = () => {
+  const { profile, loading } = useAuth();
 
-// Admin pages
-import AdminUsers from "./pages/Admin/AdminUsers";
-import AdminMusicProjects from "./pages/Admin/AdminMusicProjects";
-import AdminDigitalPublications from "./pages/Admin/AdminDigitalPublications";
-import AdminCourses from "./pages/Admin/AdminCourses";
-import AdminAnalytics from "./pages/Admin/AdminAnalytics";
-import AdminSettings from "./pages/Admin/AdminSettings";
-import AdminDatabase from "./pages/Admin/AdminDatabase";
-import NotFound from "./pages/NotFound";
-const queryClient = new QueryClient();
+  if (loading) {
+    return <div>Loading...</div>; // Spinner na czas ładowania profilu
+  }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+  switch (profile?.role) {
+    case "admin":
+      return <Navigate to="/admin/dashboard" />;
+    case "music_creator":
+      return <Navigate to="/artist/dashboard" />;
+    case "book_author":
+      return <Navigate to="/author/dashboard" />;
+    case "e-learning_instructor":
+      return <Navigate to="/instructor/dashboard" />;
+    case "e-learning_student":
+      return <Navigate to="/student/dashboard" />;
+    default:
+      return <Navigate to="/" />; // Przekierowanie domyślne, jeśli rola nie pasuje
+  }
+};
+
+function App() {
+  return (
     <AuthProvider>
-      <NotificationsProvider>
-        <TooltipProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<LandingPage />} />
+      <Router>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/auth" element={<Auth />} />
+          
+          {/* Ścieżka główna po zalogowaniu */}
+          <Route path="/dashboard" element={<ProtectedRoute><RoleBasedDashboard /></ProtectedRoute>} />
 
-              <Route element={<ProtectedRoute />}>
-                <Route element={<AppLayout />}>
-                  {/* Protected routes for all authenticated users */}
-                  <Route path="/profile" element={<UserProfile />} />
-                  <Route path="/payment-history" element={<PaymentHistory />} />
-                  <Route path="/subscription" element={<SubscriptionManagement />} />
-                  <Route path="/marketplace" element={<MarketplaceBrowse />} />
-                  <Route path="/product/:id" element={<ProductDetails />} />
+          {/* Chronione ścieżki z layoutem */}
+          <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/artist/dashboard" element={<ArtistDashboard />} />
+            <Route path="/author/dashboard" element={<AuthorDashboard />} />
+            <Route path="/instructor/dashboard" element={<InstructorDashboard />} />
+            <Route path="/student/dashboard" element={<StudentDashboard />} />
+            <Route path="/add-new-release" element={<AddNewRelease />} />
+            {/* Tutaj dodaj resztę chronionych ścieżek */}
+          </Route>
 
-                  {/* Role-specific protected routes */}
-                  <Route element={<RoleProtectedRoute allowedRoles={["admin"]} />}>
-                    <Route path="/admin" element={<AdminDashboard />} />
-                    <Route path="/admin/users" element={<AdminUsers />} />
-                    <Route path="/admin/music-projects" element={<AdminMusicProjects />} />
-                    <Route path="/admin/digital-publications" element={<AdminDigitalPublications />} />
-                    <Route path="/admin/courses" element={<AdminCourses />} />
-                    <Route path="/admin/analytics" element={<AdminAnalytics />} />
-                    <Route path="/admin/settings" element={<AdminSettings />} />
-                    <Route path="/admin/database" element={<AdminDatabase />} />
-                  </Route>
-
-                  <Route element={<RoleProtectedRoute allowedRoles={["artist"]} />}>
-                    <Route path="/artist" element={<ArtistDashboard />} />
-                    <Route path="/artist/music-publishing" element={<MusicPublishing />} />
-                    
-                    {/* --- POCZĄTEK ZMIAN: DODAJ NOWĄ ŚCIEŻKĘ --- */}
-                    <Route path="/artist/add-release" element={<AddNewRelease />} />
-                    {/* --- KONIEC ZMIAN --- */}
-                  </Route>
-
-                  <Route element={<RoleProtectedRoute allowedRoles={["author"]} />}>
-                    <Route path="/author" element={<AuthorDashboard />} />
-                    <Route path="/author/digital-publishing" element={<DigitalPublishing />} />
-                  </Route>
-
-                  <Route element={<RoleProtectedRoute allowedRoles={["instructor"]} />}>
-                    <Route path="/instructor" element={<InstructorDashboard />} />
-                    <Route path="/instructor/e-learning" element={<ELearningPlatform />} />
-                  </Route>
-
-                  <Route element={<RoleProtectedRoute allowedRoles={["student"]} />}>
-                    <Route path="/student" element={<StudentDashboard />} />
-                  </Route>
-                </Route>
-              </Route>
-
-              {/* Catch-all route for 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-        <Toaster />
-        <Sonner />
-      </NotificationsProvider>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Router>
+      <Toaster />
     </AuthProvider>
-  </QueryClientProvider>
-);
+  );
+}
 
 export default App;
