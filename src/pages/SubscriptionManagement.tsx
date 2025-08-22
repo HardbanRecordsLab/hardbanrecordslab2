@@ -1,27 +1,16 @@
--- Tabela do przechowywania powiadomień
-CREATE TABLE notifications (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    title TEXT NOT NULL,
-    description TEXT,
-    link_to TEXT,
-    is_read BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+// Poprawna, tymczasowa zawartość pliku SubscriptionManagement.tsx
+import React from 'react';
 
--- Włączenie RLS (Row Level Security)
-ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+const SubscriptionManagement = () => {
+  return (
+    <div className="p-4 md:p-8">
+      <h1 className="text-3xl font-bold">Subscription Management</h1>
+      <p className="text-muted-foreground mt-2">
+        This is where users will manage their subscription plans.
+      </p>
+      {/* TODO: Implement the subscription management interface */}
+    </div>
+  );
+};
 
--- Polityka: Użytkownicy mogą widzieć tylko swoje własne powiadomienia
-CREATE POLICY "Users can view their own notifications"
-ON notifications FOR SELECT
-USING (auth.uid() = user_id);
-
--- Polityka: Użytkownicy mogą oznaczać swoje powiadomienia jako przeczytane
-CREATE POLICY "Users can update their own notifications"
-ON notifications FOR UPDATE
-USING (auth.uid() = user_id);
-
--- Indeks dla szybszego wyszukiwania powiadomień dla danego użytkownika
-CREATE INDEX idx_notifications_user_id ON notifications(user_id);
-
+export default SubscriptionManagement;
