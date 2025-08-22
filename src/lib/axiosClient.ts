@@ -1,27 +1,17 @@
-// Pełny kod klienta API
+// Poprawiona zawartość pliku axiosClient.ts
 import axios from 'axios';
-import { getToken } from '../utils/auth'; // Założenie, że masz funkcję do pobierania tokenu JWT
+import { getToken } from './auth'; // Poprawiona ścieżka importu
 
-/**
- * Centralna instancja Axios.
- *
- * - `baseURL`: Wskazuje na główny adres Twojego API na Render.com.
- * Pamiętaj, aby przenieść go do zmiennych środowiskowych (.env).
- * - `headers`: Domyślne nagłówki dla każdego zapytania.
- * - `transformRequest`: Interceptor, który dodaje token autoryzacyjny do każdego
- * wychodzącego zapytania, jeśli token jest dostępny.
- */
 const axiosClient = axios.create({
-  baseURL: 'https://hardbanrecords-lab-backend.onrender.com/api/v1', // Zastąp adresem swojego API
+  baseURL: 'https://hardbanrecords-lab-backend.onrender.com/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Interceptor do automatycznego dodawania tokenu autoryzacyjnego
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = getToken(); // Pobierz token (np. z localStorage)
+    const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
