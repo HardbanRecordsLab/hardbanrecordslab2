@@ -1,113 +1,129 @@
-// src/contexts/AuthContext.tsx - Zaktualizowany do pracy z FastAPI
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { jwtDecode } from 'jwt-decode';
+// src/contexts/AuthContext.tsx
 
-// Definicja typów dla tokenu JWT i użytkownika
+import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axiosClient from '../lib/axiosClient'; // Zakładamy, że masz skonfigurowanego klienta axios
+import { jwtDecode } from 'jwt-decode'; // NOWY IMPORT
+
+// Definicja typów dla zdekodowanego tokenu i użytkownika
 interface DecodedToken {
-  sub: string; // Email jest w polu 'sub'
-  role: string;
-  exp: number;
+  sub: string; // ID użytkownika
+  role: string; // Rola użytkownika
+  exp: number; // Czas wygaśnięcia
 }
 
 interface User {
-  email: string;
+  id: string;
   role: string;
 }
 
+// Definicja typu dla wartości kontekstu
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, role: string) => Promise<void>; // Dodano 'role'
+  login: (credentials: any) => Promise<void>;
   logout: () => void;
+  isAuthenticated: boolean;
   isLoading: boolean;
 }
 
-// --- POPRAWKA 1: Dynamiczny adres API ---
-// Ta linia automatycznie wybierze poprawny adres API.
-// Lokalnie użyje 'http://localhost:8000', a na produkcji adresu z pliku .env.production.
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-// -----------------------------------------
-
+// Utworzenie kontekstu z wartością domyślną
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+// Props dla dostawcy kontekstu
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(localStorage.getItem('authToken'));
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('access_token');
-    if (storedToken) {
+    // Przy pierwszym ładowaniu aplikacji, sprawdzamy czy token istnieje i jest ważny
+    const currentToken = localStorage.getItem('authToken');
+    if (currentToken) {
       try {
-        const decoded = jwtDecode<DecodedToken>(storedToken);
+        const decoded = jwtDecode<DecodedToken>(currentToken);
+        // Sprawdzamy, czy token nie wygasł
         if (decoded.exp * 1000 > Date.now()) {
-          setUser({ email: decoded.sub, role: decoded.role });
-          setToken(storedToken);
+          setToken(currentToken);
+          setUser({ id: decoded.sub, role: decoded.role });
         } else {
-          localStorage.removeItem('access_token');
+          // Token wygasł, czyścimy localStorage
+          localStorage.removeItem('authToken');
         }
       } catch (error) {
         console.error("Invalid token:", error);
-        localStorage.removeItem('access_token');
+        localStorage.removeItem('authToken');
       }
     }
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const formData = new URLSearchParams();
-    formData.append('username', email);
-    formData.append('password', password);
+  const login = async (credentials: any) => {
+    try {
+      // Zamieniamy dane na format FormData, zgodnie z wymaganiami endpointu FastAPI
+      const formData = new FormData();
+      formData.append('username', credentials.email);
+      formData.append('password', credentials.password);
+      
+      const response = await axiosClient.post('/auth/login', formData);
+      const { access_token } = response.data;
+      
+      if (access_token) {
+        localStorage.setItem('authToken', access_token);
+        setToken(access_token);
+        
+        // ZDEKODOWANIE TOKENU I PRZEKIEROWANIE - KLUCZOWA ZMIANA
+        const decoded = jwtDecode<DecodedToken>(access_token);
+        const userRole = decoded.role.replace('_creator', '').replace('_instructor', ''); // Upraszczamy role, np. 'music_creator' -> 'artist'
+        setUser({ id: decoded.sub, role: userRole });
 
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || 'Login failed');
+        // Dynamiczne przekierowanie na podstawie roli
+        switch (userRole) {
+            case 'music':
+                navigate('/artist/dashboard');
+                break;
+            case 'book':
+                navigate('/author/dashboard');
+                break;
+            case 'elearning':
+                navigate('/instructor/dashboard');
+                break;
+            case 'admin':
+                navigate('/admin/dashboard');
+                break;
+            default:
+                navigate('/'); // Domyślne przekierowanie, jeśli rola jest nieznana
+        }
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+      // Rzucamy błąd dalej, aby komponent formularza mógł go obsłużyć
+      throw error;
     }
-
-    const data = await response.json();
-    const decoded = jwtDecode<DecodedToken>(data.access_token);
-    
-    setUser({ email: decoded.sub, role: decoded.role });
-    setToken(data.access_token);
-    localStorage.setItem('access_token', data.access_token);
   };
-
-  // --- POPRAWKA 2: Dodanie wysyłania roli przy rejestracji ---
-  const register = async (email: string, password: string, role: string = 'music_creator') => {
-    const response = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, role }) // Wysyłamy rolę do backendu
-    });
-    
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Registration failed');
-    }
-  };
-  // ---------------------------------------------------------
 
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('access_token');
-    window.location.href = '/';
+    localStorage.removeItem('authToken');
+    navigate('/auth');
   };
 
+  const isAuthenticated = !!token;
+
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
+// Hook do łatwego użycia kontekstu w komponentach
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
