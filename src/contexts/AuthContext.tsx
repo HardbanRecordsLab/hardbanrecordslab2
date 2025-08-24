@@ -18,13 +18,16 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, role: string) => Promise<void>; // Dodano 'role'
   logout: () => void;
   isLoading: boolean;
 }
 
-// Pobieramy adres URL naszego API ze zmiennych środowiskowych
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+// --- POPRAWKA 1: Dynamiczny adres API ---
+// Ta linia automatycznie wybierze poprawny adres API.
+// Lokalnie użyje 'http://localhost:8000', a na produkcji adresu z pliku .env.production.
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+// -----------------------------------------
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -53,8 +56,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    if (!API_URL) throw new Error("VITE_API_BASE_URL is not defined in .env.local file");
-    
     const formData = new URLSearchParams();
     formData.append('username', email);
     formData.append('password', password);
@@ -78,13 +79,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('access_token', data.access_token);
   };
 
-  const register = async (email: string, password: string) => {
-     if (!API_URL) throw new Error("VITE_API_BASE_URL is not defined in .env.local file");
-
+  // --- POPRAWKA 2: Dodanie wysyłania roli przy rejestracji ---
+  const register = async (email: string, password: string, role: string = 'music_creator') => {
     const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, role }) // Wysyłamy rolę do backendu
     });
     
     if (!response.ok) {
@@ -92,12 +92,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw new Error(errorData.detail || 'Registration failed');
     }
   };
+  // ---------------------------------------------------------
 
   const logout = () => {
     setUser(null);
     setToken(null);
     localStorage.removeItem('access_token');
-    // Przekierowanie na stronę główną po wylogowaniu
     window.location.href = '/';
   };
 

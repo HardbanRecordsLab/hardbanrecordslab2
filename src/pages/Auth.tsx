@@ -30,7 +30,7 @@ export default function Auth() {
         // Po udanym logowaniu, nawigujemy do głównego panelu
         navigate("/admin"); 
       } else {
-        await register(email, password);
+        await register(email, password, 'music_creator'); // Przekazujemy domyślną rolę
         setMessage("Rejestracja pomyślna! Możesz się teraz zalogować.");
         setIsLogin(true);
       }
@@ -61,6 +61,7 @@ export default function Auth() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  autoComplete={isLogin ? "email" : "username"} // DODANY ATRYBUT
                 />
               </div>
               <div className="grid gap-2">
@@ -71,6 +72,7 @@ export default function Auth() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete={isLogin ? "current-password" : "new-password"} // DODANY ATRYBUT
                 />
               </div>
               {error && <p className="text-red-500 text-sm text-center">{error}</p>}
